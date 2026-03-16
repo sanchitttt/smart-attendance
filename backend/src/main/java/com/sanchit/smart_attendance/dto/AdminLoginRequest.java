@@ -6,12 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
 public class AdminLoginRequest {
     @NotBlank
-    @Email
-    private String email;
-
-    @NotBlank
-    private String password; // OR pin
+    private String idToken;
 }

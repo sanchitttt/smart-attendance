@@ -1,7 +1,11 @@
 package com.sanchit.smart_attendance.service;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import com.sanchit.smart_attendance.dto.AdminLoginRequest;
 import com.sanchit.smart_attendance.dto.CreateAdminRequest;
+import com.sanchit.smart_attendance.dto.UserLoginResponse;
 import com.sanchit.smart_attendance.entity.Admin;
 import com.sanchit.smart_attendance.exception.BadRequestException;
 import com.sanchit.smart_attendance.repository.AdminRepository;
@@ -39,38 +43,66 @@ public class AdminService {
         return adminRepository.save(admin);
     }
 
-    public String login(AdminLoginRequest request) {
+    public UserLoginResponse login(AdminLoginRequest request) {
 
-        Admin admin = adminRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadRequestException("Invalid email or password"));
+        FirebaseToken decodedToken;
+
+        try {
+            decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.getIdToken());
+        } catch (FirebaseAuthException e) {
+            throw new BadRequestException("Invalid Firebase token");
+        }
+
+        String email = decodedToken.getEmail();
+        String name = decodedToken.getName();
+        String profilePicture = decodedToken.getPicture();
+
+        if (email == null || !email.endsWith("@nitkkr.ac.in")) {
+            throw new BadRequestException("Unauthorized email domain");
+        }
+
+        String localPart = email.split("@")[0];
+
+        //  Reject if numeric (student roll number)
+//        if (localPart.matches("\\d+")) { // todo: uncomment in production
+//            throw new BadRequestException("This login route is for admins only");
+//        }
+
+        Admin admin = adminRepository.findByEmail(email).orElseGet(() -> {
+
+            Admin newAdmin = new Admin();
+            newAdmin.setName(decodedToken.getName());
+            newAdmin.setEmail(email);
+            newAdmin.setPasswordHash("");
+            newAdmin.setProfilePictureUrl(profilePicture);
+            newAdmin.setPinHash("");
+            newAdmin.setFailedPinAttempts(0);
+            newAdmin.setIsLocked(false);
+
+            return adminRepository.save(newAdmin);
+        });
 
         if (admin.getIsLocked()) {
-            throw new BadRequestException("Account is locked");
+            throw new BadRequestException("Admin account locked");
         }
 
-        boolean passwordMatches =
-                passwordEncoder.matches(request.getPassword(), admin.getPasswordHash());
-
-        if (!passwordMatches) {
-            admin.setFailedPinAttempts(admin.getFailedPinAttempts() + 1);
-
-            if (admin.getFailedPinAttempts() >= 5) {
-                admin.setIsLocked(true);
-            }
-
-            adminRepository.save(admin);
-            throw new BadRequestException("Invalid email or password");
+        if (profilePicture != null && !profilePicture.equals(admin.getProfilePictureUrl())) {
+            admin.setProfilePictureUrl(profilePicture);
         }
 
-        // reset failed attempts on success
-        admin.setFailedPinAttempts(0);
+        // store firebase token
+        admin.setIdToken(request.getIdToken());
+
         adminRepository.save(admin);
 
-        return jwtService.generateToken(
+        // generate your backend JWT
+        String token = jwtService.generateToken(
                 admin.getAdminId(),
                 Role.ADMIN,
                 admin.getEmail(),
-                null
+                null // admins don't have device binding
         );
+
+        return new UserLoginResponse(token, "ADMIN");
     }
 }

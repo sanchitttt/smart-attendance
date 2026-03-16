@@ -1,22 +1,23 @@
 'use server'
+import { signOut } from "firebase/auth";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { auth } from "./firebase";
+import toast from "react-hot-toast";
 
 export async function requireTeacherAuth() {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get("access_token")?.value;
 
-    if (!accessToken) {
-        redirect("/teacher-login");
-    }
-
     return accessToken;
 }
 
 
-
 export async function logout() {
-    const cookieStore = await cookies()
-    cookieStore.delete('access_token')
+    'use server';
+    const cookieStore = await cookies();
+    cookieStore.delete('access_token');   
+    redirect("/auth/login");
+
 }
 

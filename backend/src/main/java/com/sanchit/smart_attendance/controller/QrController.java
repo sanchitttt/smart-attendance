@@ -24,7 +24,7 @@ public class QrController {
     public ResponseEntity<QrResponse> generateQr(@PathVariable Long sessionId, @AuthenticationPrincipal AdminPrincipal admin) throws Exception {
 
         QrResponse qrContent = qrService.generateQrContent(sessionId, admin.getAdminId());
-
+        System.out.println("GENERATE QR CONTROLLER CALLED!!!");
         return ResponseEntity.ok(
                 qrContent
         );

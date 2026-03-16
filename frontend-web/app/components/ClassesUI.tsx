@@ -7,11 +7,13 @@ import {
     Calendar,
     Clock,
     GraduationCap,
+    Loader2,
     LogOut,
     Users
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useRouter } from "next/navigation";
+import { useState } from 'react';
 
 interface ClassInfo {
     timetableID: number;
@@ -25,10 +27,14 @@ interface ClassInfo {
 
 interface Props {
     classes: ClassInfo[];
+    token?: string
 }
 
-export default function ClassesUI({ classes }: Props) {
+export default function ClassesUI({ classes,token }: Props) {
     const router = useRouter();
+    const [loading,setLoading] = useState(false);
+    console.log('Classes => ',classes);
+
 
     return (
         <div className="grid gap-4" >
@@ -63,14 +69,54 @@ export default function ClassesUI({ classes }: Props) {
                                 {cls.status === 'old' && (
                                     <div className="mt-4 pt-4 border-t border-gray-200">
                                         <Button
-                                            className="w-full md:w-auto"
-                                            disabled={false}
-                                            onClick={() => {
-                                                console.log(`/classes/${cls.timetableID}`);
-                                                router.push(`/classes/${cls.timetableID}`);
+                                            className="w-full md:w-auto disabled:opacity-60"
+                                            disabled={loading}
+                                            onClick={async () => {
+
+                                                setLoading(true);
+
+                                                try {
+                                                    const res = await fetch(
+                                                        "https://192.168.0.102:8082/api/v1/sessions/create",
+                                                        {
+                                                            method: "POST",
+                                                            headers: {
+                                                                "Content-Type": "application/json",
+                                                                Authorization: `Bearer ${token}`,
+                                                            },
+                                                            body: JSON.stringify({
+                                                                timetableEntryId: cls.timetableID
+                                                            })
+                                                        }
+                                                    );
+                                                    
+                                                    console.log(res);
+                                                    const json = await res.json();
+
+                                                    if (json.error) {
+                                                        alert("Failed to create session");
+                                                        setLoading(false);
+                                                        return;
+                                                    }
+
+                                                    const sessionId = json.data.sessionId;
+
+                                                    router.push(`/classes/${cls.timetableID}?sessionId=${sessionId}`);
+
+                                                } catch (err) {
+                                                    console.error(err);
+                                                    setLoading(false);
+                                                }
                                             }}
                                         >
-                                            Take Attendance
+                                            {loading ? (
+                                                <span className="flex items-center gap-2">
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                    Creating Session...
+                                                </span>
+                                            ) : (
+                                                "Take Attendance"
+                                            )}
                                         </Button>
                                     </div>
                                 )}

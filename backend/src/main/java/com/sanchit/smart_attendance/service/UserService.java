@@ -1,5 +1,8 @@
 package com.sanchit.smart_attendance.service;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import com.sanchit.smart_attendance.dto.CreateUserRequest;
 import com.sanchit.smart_attendance.dto.UserLoginRequest;
 import com.sanchit.smart_attendance.dto.UserLoginResponse;
@@ -36,32 +39,81 @@ public class UserService {
 
     public UserLoginResponse login(UserLoginRequest request) {
 
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadRequestException("Invalid credentials"));
+        FirebaseToken decodedToken;
+
+        try {
+            decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.idToken());
+        } catch (FirebaseAuthException e) {
+            System.out.println(e.getMessage());
+            throw new BadRequestException("Invalid Firebase token");
+        }
+
+        String email = decodedToken.getEmail();
+
+        if (email == null) {
+            throw new BadRequestException("Email not available in Firebase token");
+        }
+
+        String name = decodedToken.getName();
+        String profilePicture = decodedToken.getPicture();
+        if (email == null || !email.endsWith("@nitkkr.ac.in")) {
+            throw new BadRequestException("Only @nitkkr.ac.in accounts allowed");
+        }
+
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+
+            // Extract roll number from email
+            String rollNo = email.split("@")[0];
+
+            if (rollNo.length() < 3) {
+                throw new BadRequestException("Invalid roll number format");
+            }
+
+            int joiningYear = 2000 + Integer.parseInt(rollNo.substring(1, 3));
+
+            Batch batch = batchRepository.findByStartYear(joiningYear)
+                    .orElseThrow(() -> new BadRequestException(
+                            "Batch not configured for year " + joiningYear
+                    ));
+
+            User newUser = new User();
+            newUser.setName(name);
+            newUser.setEmail(email);
+            newUser.setRollNo(rollNo);
+            newUser.setProfilePictureUrl(profilePicture);
+            newUser.setBatch(batch);
+            newUser.setPasswordHash(""); // todo: temporary
+            newUser.setIsActive(true);
+            newUser.setCreatedAt(LocalDateTime.now());
+
+            return userRepository.save(newUser);
+        });
 
         if (!user.getIsActive()) {
             throw new BadRequestException("User account inactive");
         }
 
-        if (!passwordEncoder.matches(
-                request.password(),
-                user.getPasswordHash()
-        )) {
-            throw new BadRequestException("Invalid credentials");
+        if (profilePicture != null && !profilePicture.equals(user.getProfilePictureUrl())) {
+            user.setProfilePictureUrl(profilePicture);
         }
 
         String incomingHash = sha256(request.deviceFingerprint());
         Instant now = Instant.now();
 
         if (user.getDeviceIdHash() == null) {
+
             // First login
             user.setDeviceIdHash(incomingHash);
             user.setDeviceBoundAt(now);
             user.setDeviceMetadata(request.deviceMetadata());
+
         } else if (user.getDeviceIdHash().equals(incomingHash)) {
+
             // Same device
             user.setDeviceBoundAt(now);
+
         } else {
+
             Instant boundAt = Instant.from(user.getDeviceBoundAt());
             long daysSince = Duration.between(boundAt, now).toDays();
 
@@ -84,7 +136,7 @@ public class UserService {
                 user.getUserId(),
                 Role.USER,
                 user.getEmail(),
-                user.getDeviceIdHash() // 👈 bind token to device
+                user.getDeviceIdHash() // device-bound JWT
         );
 
         return new UserLoginResponse(token, "USER");

@@ -7,6 +7,8 @@ public interface TeacherClassTile {
 
     String getAdminName();
 
+    String getSessionStatus();
+
     LocalTime getStartTime();
     LocalTime getEndTime();
 
@@ -17,6 +19,8 @@ public interface TeacherClassTile {
     String getProgramName();
 
     Integer getSemester();
+
+    void setSessionStatus(String name);
 
     String getStatus(); // old | current | upcoming
 }

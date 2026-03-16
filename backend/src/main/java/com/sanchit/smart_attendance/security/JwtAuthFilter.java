@@ -6,14 +6,13 @@ import com.sanchit.smart_attendance.security.enums.Role;
 import com.sanchit.smart_attendance.security.principal.AdminPrincipal;
 import com.sanchit.smart_attendance.security.principal.AppPrincipal;
 import com.sanchit.smart_attendance.security.principal.UserPrincipal;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -40,10 +39,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        System.out.println("JWT FILTER → " + request.getRequestURI());
-
+        System.out.println("\n┌───────────────────────────────");
+        System.out.println("│ JWT FILTER HIT");
+        System.out.println("│ URI: " + request.getRequestURI());
+        System.out.println("│ Method: " + request.getMethod());
+        System.out.println("│ From: " + request.getHeader("Origin"));
+        System.out.println("└───────────────────────────────");
         String token = resolveToken(request);
-        System.out.println("Token is => " + token);
         if (token != null && jwtService.isTokenValid(token)) {
             System.out.println("Token is => valid");
 
@@ -83,29 +85,36 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             ((UserDetails) principal).getAuthorities()
                     );
 
+//            auth.setAuthenticated(true);
+//            Authentication current = SecurityContextHolder.getContext().getAuthentication();
+//            System.out.println("After set - Authenticated? " + (current != null ? current.isAuthenticated() : "null"));
+//            System.out.println("After set - Principal: " + (current != null ? current.getPrincipal() : "null"));
+//            System.out.println("After set - Details: " + (current != null ? current.getDetails() : "null"));
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
-
+        System.out.println("Calling chain.doFilter() → should reach controller");
         filterChain.doFilter(request, response);
+        System.out.println("LAST FILTER END → response already committed");
     }
 
     private String resolveToken(HttpServletRequest request) {
-
-        // 1️⃣ Authorization header (mobile)
         String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ") && !authHeader.endsWith("undefined")) {
+            System.out.println("Authorization : " + authHeader);
             return authHeader.substring(7);
         }
-
-        // 2️⃣ HttpOnly cookie (web)
+        // Check Cookies FIRST
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
+                System.out.println("Cookie => " + cookie);
                 if ("access_token".equals(cookie.getName())) {
+                    System.out.println("Loo ji mil gaya");
                     return cookie.getValue();
-                }
+                };
             }
         }
+        // Check Header SECOND
 
         return null;
     }

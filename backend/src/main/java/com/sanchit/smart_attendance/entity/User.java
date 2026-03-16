@@ -50,6 +50,9 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Column(name = "id_token")
+    private String idToken;
+
     @Column(name = "face_enrolled_at")
     private LocalDateTime faceEnrolledAt;
 
@@ -58,6 +61,9 @@ public class User {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
 
     @Convert(converter = JsonMapConverter.class)
     @Column(name = "device_meta_data", columnDefinition = "TEXT")

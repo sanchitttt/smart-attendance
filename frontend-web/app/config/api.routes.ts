@@ -1,4 +1,4 @@
-const BASE_URL_V1 = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1`;
+const BASE_URL_V1 = `/api/v1`;
 
 
 const API_ROUTES = {

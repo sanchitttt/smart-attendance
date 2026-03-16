@@ -2,6 +2,7 @@ package com.sanchit.smart_attendance.controller;
 
 import com.sanchit.smart_attendance.dto.AdminLoginRequest;
 import com.sanchit.smart_attendance.dto.CreateAdminRequest;
+import com.sanchit.smart_attendance.dto.UserLoginResponse;
 import com.sanchit.smart_attendance.entity.Admin;
 import com.sanchit.smart_attendance.service.AdminService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,17 +41,18 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("error", false, "message", "Test route working"));
     }
     // Move to /auth
+//    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AdminLoginRequest request,
                                    HttpServletResponse response) {
-        String token = adminService.login(request);
+        UserLoginResponse res = adminService.login(request);
 
-        ResponseCookie cookie = ResponseCookie.from("access_token", token)
+        ResponseCookie cookie = ResponseCookie.from("access_token", res.token())
                 .httpOnly(true)
-                .secure(false) // todo: true in prod (HTTPS)
+                .secure(true)    // Required if SameSite is None
                 .path("/")
                 .maxAge(Duration.ofMinutes(15))
-                .sameSite("Lax") // todo: Changed to Lax only for dev, Can be Strict
+                .sameSite("None") // Explicitly allow cross-port/cross-site fetch
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());

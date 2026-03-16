@@ -102,4 +102,5 @@ public interface TimetableEntryRepository
             @Param("timetableEntryId") Long timetableEntryId,
             @Param("adminId") Long adminId
     );
+
 }

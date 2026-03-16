@@ -5,12 +5,14 @@ import com.sanchit.smart_attendance.entity.TimetableEntry;
 import com.sanchit.smart_attendance.enums.DayOfWeekEnum;
 import com.sanchit.smart_attendance.enums.SessionStatus;
 import com.sanchit.smart_attendance.exception.BadRequestException;
+import com.sanchit.smart_attendance.exception.NotFoundException;
 import com.sanchit.smart_attendance.repository.*;
 import com.sanchit.smart_attendance.repository.projection.TeacherClassTile;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -73,6 +75,60 @@ public class SessionService {
 
     @Transactional
     public Session startSession(
+            Long sessionId,
+            Long adminId
+    ) {
+
+        Session session =
+                sessionRepository
+                        .findById(sessionId)
+                        .orElseThrow(() ->
+                                new NotFoundException("Session not found"));
+
+        // 🔐 Ownership check, todo: add back in production
+//        if (!session.getTimetableEntry()
+//                .getAdmin()
+//                .getAdminId()
+//                .equals(adminId)) {
+//
+//            throw new BadRequestException("Unauthorized");
+//        }
+
+        // ⏱ Auto-close logic
+        if (session.getStartedAt() != null) {
+
+            long secondsElapsed =
+                    Duration.between(session.getStartedAt(), LocalDateTime.now())
+                            .getSeconds();
+
+            if (secondsElapsed > 32) {
+                session.setStatus(SessionStatus.CLOSED);
+                return sessionRepository.save(session);
+            }
+        }
+
+        // Already active
+        if (session.getStatus() == SessionStatus.ACTIVE) {
+            return session;
+        }
+
+        // Prevent restarting closed sessions
+        if (session.getStatus() == SessionStatus.CLOSED) {
+            throw new BadRequestException("Session already closed");
+        }
+
+        // Activate session
+        session.setStatus(SessionStatus.ACTIVE);
+
+        if (session.getStartedAt() == null) {
+            session.setStartedAt(LocalDateTime.now());
+        }
+
+        return sessionRepository.save(session);
+    }
+
+    @Transactional
+    public Session createSession(
             Long timetableEntryId,
             Long adminId
     ) {
@@ -84,13 +140,42 @@ public class SessionService {
                                 new BadRequestException("Timetable entry not found"));
 
         // 🔐 Ownership check
-        if (!entry.getAdmin().getAdminId().equals(adminId)) {
+//        if (!entry.getAdmin().getAdminId().equals(adminId)) { // todo: uncomment in prod
+//            throw new BadRequestException("Unauthorized");
+//        }
+
+        LocalDate today = LocalDate.now();
+
+        Session session = Session.builder()
+                .sessionDate(today)
+                .timetableEntry(entry)
+                .status(SessionStatus.CREATED)
+                .startedAt(LocalDateTime.now())
+                .qrWindowSeconds(4)
+                .build();
+
+        return sessionRepository.save(session);
+    }
+
+    @Transactional
+    public Session findOrCreateSession(
+            Long timetableEntryId,
+            Long adminId
+    ) {
+
+        TimetableEntry entry =
+                timetableEntryRepository
+                        .findById(timetableEntryId)
+                        .orElseThrow(() ->
+                                new BadRequestException("Timetable entry not found"));
+
+        // 🔐 Ownership check
+        if (!entry.getAdmin().getAdminId().equals(4l)) {  // todo: change back to adminID
             throw new BadRequestException("Unauthorized");
         }
 
         LocalDate today = LocalDate.now();
 
-        // 🧠 Find existing session for today
         Optional<Session> existing =
                 sessionRepository
                         .findBySessionDateAndTimetableEntry_TimetableEntryId(
@@ -99,30 +184,17 @@ public class SessionService {
                         );
 
         if (existing.isPresent()) {
-            Session session = existing.get();
-
-            // Already active? return it
-            if (session.getStatus() == SessionStatus.ACTIVE) {
-                return session;
-            }
-
-            // Prevent restarting closed sessions
-            if (session.getStatus() == SessionStatus.CLOSED) {
-                throw new BadRequestException("Session already closed");
-            }
+            return existing.get();
         }
 
-        // 🆕 Create new session
         Session session = Session.builder()
                 .sessionDate(today)
                 .timetableEntry(entry)
-                .status(SessionStatus.ACTIVE)
-                .startedAt(LocalDateTime.now())
+                .status(SessionStatus.CREATED)   // session exists but not started
                 .qrWindowSeconds(4)
                 .build();
 
         return sessionRepository.save(session);
     }
-
 
 }

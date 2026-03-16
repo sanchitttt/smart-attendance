@@ -1,13 +1,19 @@
 package com.sanchit.smart_attendance.service;
 
+import com.sanchit.smart_attendance.dto.TeacherClassTileDTO;
+import com.sanchit.smart_attendance.entity.Session;
 import com.sanchit.smart_attendance.enums.DayOfWeekEnum;
+import com.sanchit.smart_attendance.enums.SessionStatus;
 import com.sanchit.smart_attendance.exception.BadRequestException;
+import com.sanchit.smart_attendance.exception.NotFoundException;
 import com.sanchit.smart_attendance.repository.*;
 import com.sanchit.smart_attendance.repository.projection.TeacherClassTile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +47,10 @@ public class TimetableService {
         // Hardcoded for testing
         LocalDate today = LocalDate.of(2026, 2, 5); // Thursday
         String day = "THU"; // or convert from LocalDate
-
+        System.out.println("Reached jii" + Math.random());
         List<TeacherClassTile> rows =
                 timetableEntryRepository
-                        .findTeacherClassesForDay(adminId, day);
+                        .findTeacherClassesForDay(4L, day); // todo: change 4 to adminID;
 
         List<Map<String, Object>> tiles = rows.stream().map(r -> {
             Map<String, Object> m = new HashMap<>();
@@ -65,16 +71,50 @@ public class TimetableService {
         );
     }
 
-    public TeacherClassTile getClassById(
+    public TeacherClassTileDTO getClassById(
             Long timetableEntryId,
-            Long adminId
+            Long adminId,
+            Long sessionId
     ) {
-        return timetableEntryRepository
-                .findTeacherClassByTimetableEntryId(
-                        timetableEntryId,
-                        adminId
-                )
-                .orElseThrow(() ->
-                        new BadRequestException("Class not found"));
+
+        TeacherClassTile tile =
+                timetableEntryRepository
+                        .findTeacherClassByTimetableEntryId(
+                                timetableEntryId,
+                                adminId
+                        )
+                        .orElseThrow(() ->
+                                new BadRequestException("Class not found"));
+        TeacherClassTileDTO cls = new TeacherClassTileDTO(tile);
+        if (sessionId != null) {
+
+            Session session =
+                    sessionRepository
+                            .findById(sessionId)
+                            .orElseThrow(() ->
+                                    new NotFoundException("Session not found"));
+
+            // Ensure session belongs to this timetable entry
+            if (!session.getTimetableEntry()
+                    .getTimetableEntryId()
+                    .equals(timetableEntryId)) {
+                throw new NotFoundException("Session not found");
+            }
+
+            if (session.getStartedAt() != null) {
+
+                long secondsElapsed =
+                        Duration.between(session.getStartedAt(), LocalDateTime.now())
+                                .getSeconds();
+
+                if (secondsElapsed > 32) {
+                    session.setStatus(SessionStatus.CLOSED);
+                }
+            }
+
+            cls.setSessionStatus(session.getStatus().name());
+        }
+
+        return cls;
     }
 }

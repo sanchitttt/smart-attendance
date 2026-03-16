@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class StartSessionRequest {
     private Long timetableEntryId;
+    private Long sessionId;
 }

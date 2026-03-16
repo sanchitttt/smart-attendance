@@ -5,14 +5,16 @@ import { Card,CardContent,CardDescription,CardHeader,CardTitle } from '@/app/com
 import { Progress } from '@/app/components/ui/progress';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import API_ROUTES from '@/app/config/api.routes';
-import { redirect } from 'next/navigation';
+import { notFound,redirect } from 'next/navigation';
 import { requireTeacherAuth } from '@/app/lib/auth';
-import { ArrowLeft,BookOpen,CheckCircle2,Clock,LogOut,QrCode,RefreshCw,Users } from 'lucide-react';
+import { AlertCircle,ArrowLeft,BookOpen,CheckCircle2,Clock,Home,LogOut,QrCode,RefreshCw,Users } from 'lucide-react';
 import { AnimatePresence,motion } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
 import GenerateQR from '@/app/components/GenerateQR';
 import BackButton from '@/app/components/ui/back-button';
 import Logout from '@/app/components/ui/logout';
+import LiveAttendance from './LiveAttendance';
+import SessionClosed from './SessionClosed';
 
 interface Cls {
     timetableID: number;
@@ -29,38 +31,62 @@ interface Cls {
 
 
 
-type Props = {
-    params: {
-        timetableID: string;
-    };
+type PageProps = {
+    params: { timetableID: string };
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 };
 
-async function TakeAttendance({ params }: Props) {
-    console.log(params)
+async function TakeAttendance({ params,searchParams }: PageProps) {
     const { timetableID } = await params;
-    const onBack = () => { };
-    const onLogout = () => { };
+    const query = await searchParams;
+    const sessionId = query.sessionId;
+
+    if (!sessionId) {
+        return notFound();
+    }
+
     const students = [];
     const isActive = false;
-    const timeLeft = 30;
-    const progressPercentage = 0;
-    const startNewSession = () => { };
-    const sessionId = "asodasd";
 
     const token = await requireTeacherAuth();
 
-    const res = await fetch(`${API_ROUTES.CLASS_BY_ID}/${timetableID}`,{
+    const res = await fetch(`https://192.168.0.102:8082/api/v1/timetable/class/${timetableID}/${sessionId}`,{
         headers: {
-            Cookie: `access_token=${token}`,
-        }
+            Authorization: `Bearer ${token}`,
+        Cookie: `access_token=${token}`,
+        },
+        credentials: "include" // THIS IS MANDATORY
     });
 
+    console.log(res);
+
+    if (!res) {
+        // Handle fetch failure gracefully
+        return (
+            <div className="min-h-screen flex items-center justify-center p-8">
+                <Card className="max-w-lg text-center p-10">
+                    <CardContent className="space-y-6">
+                        <AlertCircle className="h-16 w-16 mx-auto text-red-500" />
+                        <h2 className="text-2xl font-bold">Connection Error</h2>
+                        <p className="text-gray-600">
+                            Could not reach the server. Please check your network or try again later.
+                        </p>
+                        <Button onClick={() => window.location.reload()}>Retry</Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     if (res.status == 403) {
-        redirect('/teacher-login');
+        redirect('/auth/login');
+    }
+    else if (res.status == 400) {
+        const data = await res.json();
+        return data?.data?.message;
     }
 
     const data = await res.json();
-
     const cls: Cls = data?.data;
     // const today = new Date();
 
@@ -74,10 +100,35 @@ async function TakeAttendance({ params }: Props) {
         };
 
         return `${format(startTime)} - ${format(endTime)}`;
+    };
+
+    console.log(data);
+    if (data?.data?.sessionStatus === 'CLOSED' || data?.data?.sessionStatus === 'CANCELLED') {
+        return <SessionClosed />
     }
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-            <div className="max-w-7xl mx-auto space-y-6">
+        <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-hidden">
+
+            {/* Background Pattern */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    backgroundImage: `
+        linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
+        linear-gradient(-45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%)
+      `,
+                    backgroundSize: "40px 40px",
+                    WebkitMaskImage:
+                        "radial-gradient(ellipse 100% 80% at 50% 100%, #000 50%, transparent 90%)",
+                    maskImage:
+                        "radial-gradient(ellipse 100% 80% at 50% 100%, #000 50%, transparent 90%)",
+                }}
+            />
+
+            {/* Page Content */}
+            <div className="relative z-10 max-w-7xl mx-auto space-y-6">
+
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -94,6 +145,7 @@ async function TakeAttendance({ params }: Props) {
                 <Card className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
                     <CardContent className="pt-6">
                         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+
                             <div className="flex items-start gap-3">
                                 <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                                     <BookOpen className="h-5 w-5" />
@@ -103,6 +155,7 @@ async function TakeAttendance({ params }: Props) {
                                     <p className="font-semibold text-lg">{cls.subjectName}</p>
                                 </div>
                             </div>
+
                             <div className="flex items-start gap-3">
                                 <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                                     <Users className="h-5 w-5" />
@@ -112,38 +165,48 @@ async function TakeAttendance({ params }: Props) {
                                     <p className="font-semibold text-lg">{cls.programName}</p>
                                 </div>
                             </div>
+
                             <div className="flex items-start gap-3">
                                 <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                                     <Clock className="h-5 w-5" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-white/80">Time</p>
-                                    <p className="font-semibold text-lg">{formatTimeRange(cls.startTime,cls.endTime)}</p>
+                                    <p className="font-semibold text-lg">
+                                        {formatTimeRange(cls.startTime,cls.endTime)}
+                                    </p>
                                 </div>
                             </div>
+
                             <div className="flex items-start gap-3">
                                 <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                                     <Users className="h-5 w-5" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-white/80">Batch</p>
-                                    <p className="font-semibold text-lg">{`${cls.startYear}-${cls.endYear}`}</p>
+                                    <p className="font-semibold text-lg">
+                                        {`${cls.startYear}-${cls.endYear}`}
+                                    </p>
                                 </div>
                             </div>
+
                             <div className="flex items-start gap-3">
                                 <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                                     <BookOpen className="h-5 w-5" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-white/80">Semester</p>
-                                    <p className="font-semibold text-lg">{cls.semester}</p>                                </div>
+                                    <p className="font-semibold text-lg">{cls.semester}</p>
+                                </div>
                             </div>
+
                         </div>
                     </CardContent>
                 </Card>
 
                 <div className="grid lg:grid-cols-5 gap-6">
-                    {/* QR Code Section - Now takes 3 columns */}
+
+                    {/* QR Section */}
                     <Card className="lg:col-span-3">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -155,101 +218,61 @@ async function TakeAttendance({ params }: Props) {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <GenerateQR timetableEntryID={timetableID} />
+                            <GenerateQR sessionId={sessionId as string} token={token} />
                         </CardContent>
                     </Card>
 
-                    {/* Attendance List - Now takes 2 columns */}
-                    <Card className="lg:col-span-2">
-                        <CardHeader>
-                            <CardTitle className="flex items-center justify-between">
-                                <span className="flex items-center gap-2">
-                                    <Users className="h-5 w-5" />
-                                    Live Attendance
-                                </span>
-                                <Badge variant="secondary" className="text-lg px-3 py-1">
-                                    {students.length}
-                                </Badge>
-                            </CardTitle>
-                            <CardDescription>
-                                Students who have marked their attendance
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <ScrollArea className="h-[500px] pr-4">
-                                {students.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                                        <Users className="h-12 w-12 mb-2 opacity-30" />
-                                        <p>No students have checked in yet</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-2">
-                                        <AnimatePresence>
-                                            {students.map((student,index) => (
-                                                <motion.div
-                                                    key={student.id}
-                                                    initial={{ opacity: 0,x: -20 }}
-                                                    animate={{ opacity: 1,x: 0 }}
-                                                    transition={{ duration: 0.3 }}
-                                                    className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-8 w-8 rounded-full bg-green-600 flex items-center justify-center text-white font-medium">
-                                                            {student.name.charAt(0)}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium text-gray-900">{student.name}</p>
-                                                            <p className="text-xs text-gray-500">
-                                                                {student.timestamp.toLocaleTimeString()}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                                                </motion.div>
-                                            ))}
-                                        </AnimatePresence>
-                                    </div>
-                                )}
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
+                    {/* Attendance List */}
+                    <LiveAttendance
+                        sessionId={+timetableID}
+                        token={token as string}
+                    />
+
                 </div>
 
-                {/* Statistics Summary */}
+                {/* Session Summary */}
                 {students.length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Session Summary</CardTitle>
                         </CardHeader>
+
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
                                 <div className="p-4 bg-blue-50 rounded-lg">
                                     <p className="text-sm text-gray-600">Total Students</p>
-                                    <p className="text-2xl font-bold text-blue-600">{students.length}</p>
+                                    <p className="text-2xl font-bold text-blue-600">
+                                        {students.length}
+                                    </p>
                                 </div>
+
                                 <div className="p-4 bg-green-50 rounded-lg">
                                     <p className="text-sm text-gray-600">Status</p>
                                     <p className="text-2xl font-bold text-green-600">
                                         {isActive ? 'Active' : 'Ended'}
                                     </p>
                                 </div>
-                                <div className="p-4 bg-purple-50 rounded-lg">
+
+                                {/* <div className="p-4 bg-purple-50 rounded-lg">
                                     <p className="text-sm text-gray-600">Session ID</p>
                                     <p className="text-xs font-mono text-purple-600 truncate">
                                         {sessionId.split('-')[1] || 'N/A'}
                                     </p>
-                                </div>
+                                </div> */}
+
                                 <div className="p-4 bg-orange-50 rounded-lg">
                                     <p className="text-sm text-gray-600">Attendance Rate</p>
                                     <p className="text-2xl font-bold text-orange-600">
-                                        {/*todo change hardcoded 105*/}
                                         {Math.round((students.length / 105) * 100)}%
                                     </p>
                                 </div>
+
                             </div>
                         </CardContent>
                     </Card>
                 )}
+
             </div>
         </div>
     );

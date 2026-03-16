@@ -5,8 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.Map;
 
 public record UserLoginRequest(
-        String email,
-        String password,
+        String idToken,
         String deviceFingerprint,
         Map<String, Object> deviceMetadata
 ) {}

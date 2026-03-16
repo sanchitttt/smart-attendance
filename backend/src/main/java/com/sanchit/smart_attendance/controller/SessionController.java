@@ -38,17 +38,40 @@ public class SessionController {
         );
     }
 
-    @PostMapping("/start")
+    @PostMapping("/create")
+    public ResponseEntity<?> createSession(
+            @AuthenticationPrincipal AdminPrincipal admin,
+            @RequestBody StartSessionRequest request
+    ) {
+        System.out.println("Reached create controller");
+        Session session = sessionService.createSession(
+                request.getTimetableEntryId(),
+                admin.getId()
+        );
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "error", false,
+                        "data", Map.of(
+                                "sessionId", session.getSessionId(),
+                                "status", session.getStatus().name()
+                        )
+                )
+        );
+    }
+
+    @PostMapping("/{sessionId}/start")
     public ResponseEntity<?> startSession(
-            @RequestBody StartSessionRequest request,
+            @PathVariable Long sessionId,
             @AuthenticationPrincipal AdminPrincipal admin
     ) {
         Session session =
                 sessionService.startSession(
-                        request.getTimetableEntryId(),
+                        sessionId,
                         admin.getId()
                 );
 
+        System.out.println("Pahuch gaya beyyyy!");
         return ResponseEntity.ok(
                 Map.of(
 

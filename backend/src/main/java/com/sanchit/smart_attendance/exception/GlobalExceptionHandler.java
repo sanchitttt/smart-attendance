@@ -17,6 +17,13 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", true, "message", ex.getMessage()));
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<?> handleBadRequest(NotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", true, "message", ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneric(Exception ex) {
         ex.printStackTrace(); // 🔥 ADD THIS

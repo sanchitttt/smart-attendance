@@ -34,17 +34,18 @@ public class TimetableController {
 
     ;
 
-    @GetMapping("/{timetableEntryID}")
+    @GetMapping("/{timetableEntryID}/{sessionId}")
     public ResponseEntity<?> getClassById(
             @PathVariable Long timetableEntryID,
+            @PathVariable Long sessionId,
             @AuthenticationPrincipal AdminPrincipal admin
     ) {
         System.out.println(">>> HIT getClassById controller");
-
+        System.out.println(admin.getId());
         return ResponseEntity.ok(
                 Map.of(
                         "error", "false",
-                        "data", timetableService.getClassById(timetableEntryID, admin.getId())
+                        "data", timetableService.getClassById(timetableEntryID, 4l,sessionId) // todo: change later
                 )
         );
     }

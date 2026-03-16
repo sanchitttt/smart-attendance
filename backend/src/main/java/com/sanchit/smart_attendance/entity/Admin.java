@@ -34,5 +34,11 @@ public class Admin {
     @Column(nullable = false)
     private String pinHash;
 
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
+    @Column(name = "id_token")
+    private String idToken;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }

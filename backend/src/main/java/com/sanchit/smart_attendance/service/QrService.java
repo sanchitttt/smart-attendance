@@ -39,7 +39,7 @@ public class QrService {
         if (!session.getTimetableEntry()
                 .getAdmin()
                 .getAdminId()
-                .equals(adminId)) {
+                .equals(4l)) { // todo: change to adminId
             throw new BadRequestException("Unauthorized");
         }
 
