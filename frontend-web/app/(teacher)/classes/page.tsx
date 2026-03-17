@@ -18,7 +18,8 @@ export default async function ClassesPage() {
     console.log('access_token in SC:',accessToken ? 'present' : 'missing');
     console.log(accessToken);
 
-    const res = await fetch("https://192.168.0.102:8082/api/v1/timetable/class/all",{
+
+    const res = await fetch("https://quantity-sea-organizer-made.trycloudflare.com/api/v1/timetable/class/all",{
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -26,6 +27,8 @@ export default async function ClassesPage() {
         },
         cache: 'no-store',
     });
+    console.log(res);
+
 
     console.log('Backend response status:',res.status);
     console.log('Backend response ok:',res.ok);
@@ -36,41 +39,57 @@ export default async function ClassesPage() {
     const today = new Date();
 
     return (
-        <div className="min-h-screen w-full bg-white relative text-gray-800">
-            {/* Circuit Board - Light Pattern */}
+        <div className="min-h-screen w-full relative text-gray-900">
+            {/* Clean subtle background */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-slate-50" />
             <div
-                className="absolute inset-0"
+                className="absolute inset-0 opacity-[0.35]"
                 style={{
-                    backgroundImage: `
-        linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
-        linear-gradient(-45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%)
-      `,
-                    backgroundSize: "40px 40px",
-                    WebkitMaskImage:
-                        "radial-gradient(ellipse 100% 80% at 50% 100%, #000 50%, transparent 90%)",
-                    maskImage:
-                        "radial-gradient(ellipse 100% 80% at 50% 100%, #000 50%, transparent 90%)",
+                    backgroundImage:
+                        "linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px)",
+                    backgroundSize: "48px 48px",
+                    maskImage: "radial-gradient(circle at 50% 0%, black 35%, transparent 75%)",
+                    WebkitMaskImage: "radial-gradient(circle at 50% 0%, black 35%, transparent 75%)",
                 }}
             />
 
-            {/* Your original content – wrapped in z-10 so it sits above the grid */}
-            <div className="relative z-10 max-w-6xl mx-auto space-y-6 p-4">
+            <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">My Classes</h1>
-                        <p className="text-gray-600 mt-1">Welcome, {classes.length ? classes[0].teacherName : ""}</p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-gray-900">
+                            My Classes
+                        </h1>
+                        <p className="text-sm sm:text-base text-gray-600">
+                            {classes.length ? (
+                                <>
+                                    Welcome back,{" "}
+                                    <span className="font-medium text-gray-800">
+                                        {classes[0].teacherName}
+                                    </span>
+                                </>
+                            ) : (
+                                "Your timetable will appear here."
+                            )}
+                        </p>
                     </div>
-                    <Logout />
+
+                    <div className="flex items-center justify-start sm:justify-end">
+                        <Logout />
+                    </div>
                 </div>
 
                 {/* Date */}
-                <Card className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-                    <CardContent className="pt-6 flex items-center gap-3">
-                        <Calendar className="h-8 w-8" />
-                        <div>
-                            <p className="text-sm text-white/80">Today's Schedule</p>
-                            <p className="text-xl font-semibold">
+                <Card className="border border-slate-200/70 shadow-sm bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+                    <CardContent className="p-5 sm:p-6 flex items-center gap-4">
+                        <div className="h-11 w-11 rounded-xl bg-indigo-600/10 text-indigo-700 flex items-center justify-center ring-1 ring-indigo-600/10">
+                            <Calendar className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-xs sm:text-sm text-gray-500">
+                                Today
+                            </p>
+                            <p className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                                 {today.toLocaleDateString("en-IN",{
                                     weekday: "long",
                                     day: "numeric",

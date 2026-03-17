@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,9 @@ import {
 import { signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { useRouter } from 'expo-router';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons,Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getLocation } from '@/utils/location';
 
 export default function Home() {
   const router = useRouter();
@@ -27,9 +28,20 @@ export default function Home() {
       await signOut(auth);
       router.replace('/login');
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Logout failed:',error);
     }
   };
+
+
+  useEffect(() => {
+    const temp = async () => {
+      const res = await getLocation();
+      console.log(res);
+    }
+
+    temp();
+
+  },[]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -37,9 +49,9 @@ export default function Home() {
 
       {/* Gradient Header */}
       <LinearGradient
-        colors={['#1976D2', '#1565C0']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        colors={['#1976D2','#1565C0']}
+        start={{ x: 0,y: 0 }}
+        end={{ x: 1,y: 0 }}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -64,7 +76,7 @@ export default function Home() {
         {/* Quick Stats (placeholder - ready for real data) */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#E8F5E9' }]}>
+            <View style={[styles.statIcon,{ backgroundColor: '#E8F5E9' }]}>
               <MaterialIcons name="people" size={28} color="#4CAF50" />
             </View>
             <Text style={styles.statNumber}>142</Text>
@@ -72,7 +84,7 @@ export default function Home() {
           </View>
 
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#E3F2FD' }]}>
+            <View style={[styles.statIcon,{ backgroundColor: '#E3F2FD' }]}>
               <MaterialIcons name="check-circle" size={28} color="#2196F3" />
             </View>
             <Text style={styles.statNumber}>94%</Text>
@@ -171,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '48%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0,height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
@@ -204,7 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 32,
     shadowColor: '#1976D2',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0,height: 10 },
     shadowOpacity: 0.35,
     shadowRadius: 15,
     elevation: 12,
@@ -231,7 +243,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0,height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,

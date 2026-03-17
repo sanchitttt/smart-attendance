@@ -40,7 +40,6 @@ public class AdminController {
     public ResponseEntity<?> test() {
         return ResponseEntity.ok(Map.of("error", false, "message", "Test route working"));
     }
-    // Move to /auth
 //    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AdminLoginRequest request,
@@ -50,6 +49,7 @@ public class AdminController {
         ResponseCookie cookie = ResponseCookie.from("access_token", res.token())
                 .httpOnly(true)
                 .secure(true)    // Required if SameSite is None
+//                .domain("labs-flyer-among-consider.trycloudflare.com")
                 .path("/")
                 .maxAge(Duration.ofMinutes(15))
                 .sameSite("None") // Explicitly allow cross-port/cross-site fetch
@@ -66,10 +66,10 @@ public class AdminController {
         ResponseCookie deleteCookie = ResponseCookie
                 .from("access_token", "")
                 .httpOnly(true)
-                .secure(false)     // true in prod (HTTPS)
+                .secure(true)     // true in prod (HTTPS)
                 .path("/")
                 .maxAge(0)         // 🔥 expires immediately
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());

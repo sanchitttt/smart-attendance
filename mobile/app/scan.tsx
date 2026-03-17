@@ -1,29 +1,31 @@
-import React from "react";
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
-import { CameraView,useCameraPermissions } from "expo-camera";
-import { SafeAreaView } from "react-native-safe-area-context";
 import PermissionFallback from "@/components/permission-fallback";
-import { useRouter } from "expo-router";
-import { useRef } from "react";
 import API_CONFIG from "@/constants/api-config";
+import useLocation from "@/hooks/use-location";
+import { getToken } from "@/utils/secureStore";
+import { CameraView,useCameraPermissions } from "expo-camera";
+import { useRouter } from "expo-router";
+import React,{ useRef,useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 export default function Scan() {
   const [permission,requestPermission] = useCameraPermissions();
+  const { location, error, loading, refetch } = useLocation(10000);
   const [step,setStep] = useState(1); // 1: QR, 2: Selfie, 3: Success
   const [scanned,setScanned] = useState(false);
+  const [retryCount,setRetryCount] = useState(0);
+  const [cameraReady,setCameraReady] = useState(false);
   const cameraRef = useRef<CameraView | null>(null);
   const sessionIdRef = useRef<number | null>(null);
-  const [cameraReady,setCameraReady] = useState(false);
   const router = useRouter();
 
-
+  
   if (!permission) return <View />;
 
   if (!permission.granted) {
@@ -33,20 +35,62 @@ export default function Scan() {
     />;
   }
 
-  const handleScan = ({ data }: { data: string }) => {
-    if (scanned) return;
 
+  const handleScan = async ({ data }: { data: string }) => {
+    if (scanned) return;
     setScanned(true);
 
-    const parsed = JSON.parse(data);
-    sessionIdRef.current = parsed.sessionId;
+    try {
+      const parsed = JSON.parse(data);
+      sessionIdRef.current = parsed.sessionId;
 
-    setStep(2);
-    setCameraReady(false);
+      // Step 1: Try to submit immediately (without location)
+      await submitScan(parsed);
 
-    setTimeout(() => {
-      setCameraReady(true);
-    },400);
+      // Move to next step right away — user experience is fast
+      setStep(2);
+      setCameraReady(false);
+      setTimeout(() => setCameraReady(true),400);
+    } catch (err) {
+      console.error('Initial scan failed:',err);
+      // If failed because of missing location → retry later
+      if (retryCount < 3 && !location) {
+        setTimeout(() => {
+          setRetryCount(c => c + 1);
+          handleScan({ data }); // retry once location is ready
+        },2000 * (retryCount + 1));
+      }
+    }
+  };
+
+  const submitScan = async (parsed: any) => {
+    const payload = {
+      sessionId: parsed.sessionId,
+      issuedAt: parsed.issuedAt,
+      expiresAt: parsed.expiresAt,
+      signature: parsed.signature,
+      latitude: location?.latitude ?? 0,    // fallback if location not ready
+      longitude: location?.longitude ?? 0,
+    };
+
+    console.log(payload);
+    const token = await getToken();
+    const res = await fetch("https://quantity-sea-organizer-made.trycloudflare.com/api/v1/attendance/scan-qr",{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'Scan failed');
+    }
+
+    console.log('Scan successful:',await res.json());
   };
 
   const finishSelfie = async () => {

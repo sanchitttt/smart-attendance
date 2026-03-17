@@ -21,6 +21,8 @@ public class CorsConfig {
                 "https://localhost:3000",
                 "http://192.168.0.102:3000",     // add this
                 "https://192.168.0.102:3000"     // add this if frontend uses HTTPS
+                ,"https://localhost:3000"
+                ,"https://quantity-sea-organizer-made.trycloudflare.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

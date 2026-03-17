@@ -106,6 +106,9 @@ public class SessionService {
                 return sessionRepository.save(session);
             }
         }
+        else{
+            session.setStartedAt(LocalDateTime.now());
+        }
 
         // Already active
         if (session.getStatus() == SessionStatus.ACTIVE) {
@@ -150,7 +153,7 @@ public class SessionService {
                 .sessionDate(today)
                 .timetableEntry(entry)
                 .status(SessionStatus.CREATED)
-                .startedAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .qrWindowSeconds(4)
                 .build();
 

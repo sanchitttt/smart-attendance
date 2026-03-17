@@ -112,6 +112,18 @@ public class TimetableService {
                 }
             }
 
+            // New check: created 5 minutes ago
+            if (session.getCreatedAt() != null) {
+
+                long minutesSinceCreation =
+                        Duration.between(session.getCreatedAt(), LocalDateTime.now())
+                                .toMinutes();
+
+                if (minutesSinceCreation >= 5) {
+                    session.setStatus(SessionStatus.CLOSED);
+                }
+            }
+
             cls.setSessionStatus(session.getStatus().name());
         }
 

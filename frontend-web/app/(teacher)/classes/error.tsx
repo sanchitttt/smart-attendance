@@ -5,7 +5,13 @@ import { AlertCircle,RefreshCw,Home } from 'lucide-react';
 import { Button } from "@/app/components/ui/button";
 import { Card,CardContent } from "@/app/components/ui/card";
 
-function Error() {
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
@@ -35,7 +41,7 @@ function Error() {
                 Something went wrong
               </h2>
               <p className="text-lg text-gray-600 max-w-md mx-auto">
-                We're sorry, an unexpected error occurred. Please try again or contact support if the problem persists.
+                {error?.message ?? "We're sorry, an unexpected error occurred. Please try again or contact support if the problem persists."}
               </p>
             </div>
 
@@ -72,5 +78,3 @@ function Error() {
     </div>
   );
 }
-
-export default Error;

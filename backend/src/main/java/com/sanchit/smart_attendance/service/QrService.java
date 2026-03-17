@@ -35,6 +35,12 @@ public class QrService {
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new BadRequestException("Session not found"));
 
+        // Check if not active
+        if (session.getStatus() != SessionStatus.ACTIVE) {
+            session.setStatus(SessionStatus.ACTIVE);
+            sessionRepository.save(session); // persist the change
+        }
+
         // Ownership check
         if (!session.getTimetableEntry()
                 .getAdmin()
@@ -44,9 +50,9 @@ public class QrService {
         }
 
         // Session must be ACTIVE
-        if (session.getStatus() != SessionStatus.ACTIVE) {
-            throw new BadRequestException("Session is not active");
-        }
+//        if (session.getStatus() != SessionStatus.ACTIVE) {
+//            throw new BadRequestException("Session is not active");
+//        }
 
         long issuedAt = System.currentTimeMillis();
         long expiresAt = issuedAt + (session.getQrWindowSeconds() * 1000L);

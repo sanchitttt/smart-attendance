@@ -43,6 +43,9 @@ public class Session {
     @Column(name = "started_at")
     private LocalDateTime startedAt;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     @Column(name = "ended_at")
     private LocalDateTime endedAt;
 

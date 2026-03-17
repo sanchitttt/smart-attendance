@@ -5,6 +5,7 @@ function Loading() {
     return <AnimatedLoading
         title="Getting things ready"
         subtitle='Loading your classes for this period'
+        tone="clean"
     />
 }
 

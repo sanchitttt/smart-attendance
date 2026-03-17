@@ -6,14 +6,21 @@ import { QrCode, CheckCircle2 } from "lucide-react";
 type AnimatedLoadingProps = {
   title?: string;
   subtitle?: string;
+  tone?: "default" | "clean";
 };
 
 export default function AnimatedLoading({
   title,
   subtitle,
+  tone = "default",
 }: AnimatedLoadingProps) {
+  const backgroundClassName =
+    tone === "clean"
+      ? "bg-gradient-to-b from-slate-50 via-white to-slate-50"
+      : "bg-gradient-to-br from-blue-50 via-white to-purple-50";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className={`min-h-screen ${backgroundClassName} flex items-center justify-center p-4 relative overflow-hidden`}>
       <div className="flex flex-col items-center gap-8">
         {/* Animated QR Code Container */}
         <div className="relative">

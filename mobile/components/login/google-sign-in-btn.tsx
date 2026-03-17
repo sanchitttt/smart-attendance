@@ -1,13 +1,11 @@
-import React from "react";
-import { TouchableOpacity,Text,StyleSheet,View } from "react-native";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { GoogleAuthProvider,signInWithCredential } from "firebase/auth";
 import { auth } from "@/services/firebase";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import * as Device from "expo-device";
-import API_CONFIG from "@/constants/api-config";
 import { getDeviceInfo } from "@/utils/device";
+import { saveToken } from "@/utils/secureStore";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { useRouter } from "expo-router";
+import { GoogleAuthProvider,signInWithCredential } from "firebase/auth";
+import React,{ useState } from "react";
+import { StyleSheet,Text,TouchableOpacity,View } from "react-native";
 import { SvgXml } from "react-native-svg";
 
 // Official Google "G" logo SVG (you can also use an image asset)
@@ -58,7 +56,7 @@ export default function GoogleSignInButton() {
 
             console.log(payload);
 
-            const response = await fetch("http://192.168.0.102:8082/api/v1/users/login",{
+            const response = await fetch("https://quantity-sea-organizer-made.trycloudflare.com/api/v1/users/login",{
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -67,9 +65,10 @@ export default function GoogleSignInButton() {
             });
 
             const data = await response.json();
-            
+
             console.log(response);
-            console.log(`Data is ${data}`);
+            console.log(data);
+            await saveToken(data?.token);
             if (!response.ok) {
                 throw new Error(data.message);
             }

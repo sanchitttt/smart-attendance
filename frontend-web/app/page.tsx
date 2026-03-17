@@ -10,12 +10,12 @@ import { Badge } from './components/ui/badge';
 export const metadata: Metadata = {
   title: 'Smart Attendance – QR-Based Classroom Attendance System',
   description: 'Modern, secure, and effortless attendance tracking for schools and colleges using QR codes, real-time reports, and device binding.',
-  openGraph: {
-    title: 'Smart Attendance',
-    description: 'Say goodbye to manual registers. Track attendance in seconds with QR codes.',
-    images: ['/og-image.jpg'],
-    type: 'website',
-  },
+  // openGraph: {
+  //   title: 'Smart Attendance',
+  //   description: 'Say goodbye to manual registers. Track attendance in seconds with QR codes.',
+  //   images: ['/og-image.jpg'],
+  //   type: 'website',
+  // },
 };
 
 export default function Home() {

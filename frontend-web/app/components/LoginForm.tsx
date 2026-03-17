@@ -31,14 +31,14 @@ export default function LoginForm() {
             const result = await signInWithPopup(auth,googleProvider);
             const idToken = await result.user.getIdToken();
             console.log({ idToken });
-            const res = await fetch('https://192.168.0.102:8082/api/v1/admin/login',{
+            const res = await fetch('https://quantity-sea-organizer-made.trycloudflare.com/api/v1/admin/login',{
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idToken }),
             });
 
-
+            console.log(res.headers);
             if (!res.ok) {
                 console.log('Called!');
                 const data = await res.json();
@@ -47,6 +47,8 @@ export default function LoginForm() {
                 return;
             }
             else {
+                console.log(res.headers);
+                const data = await res.json();
                 toast.success('Signed in successfully!',{ icon: '🎉' });
                 router.push('/classes');
             }

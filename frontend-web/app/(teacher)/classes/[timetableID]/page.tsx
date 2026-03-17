@@ -15,6 +15,7 @@ import BackButton from '@/app/components/ui/back-button';
 import Logout from '@/app/components/ui/logout';
 import LiveAttendance from './LiveAttendance';
 import SessionClosed from './SessionClosed';
+import AttendanceWrapper from './AttendanceWrapper';
 
 interface Cls {
     timetableID: number;
@@ -50,10 +51,10 @@ async function TakeAttendance({ params,searchParams }: PageProps) {
 
     const token = await requireTeacherAuth();
 
-    const res = await fetch(`https://192.168.0.102:8082/api/v1/timetable/class/${timetableID}/${sessionId}`,{
+    const res = await fetch(`https://quantity-sea-organizer-made.trycloudflare.com/api/v1/timetable/class/${timetableID}/${sessionId}`,{
         headers: {
             Authorization: `Bearer ${token}`,
-        Cookie: `access_token=${token}`,
+            Cookie: `access_token=${token}`,
         },
         credentials: "include" // THIS IS MANDATORY
     });
@@ -102,14 +103,13 @@ async function TakeAttendance({ params,searchParams }: PageProps) {
         return `${format(startTime)} - ${format(endTime)}`;
     };
 
-    console.log(data);
+    console.log(data?.data);
     if (data?.data?.sessionStatus === 'CLOSED' || data?.data?.sessionStatus === 'CANCELLED') {
         return <SessionClosed />
     }
 
     return (
-        <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-hidden">
-
+        <div className="relative min-h-screen  p-4 overflow-hidden">
             {/* Background Pattern */}
             <div
                 className="absolute inset-0"
@@ -204,31 +204,16 @@ async function TakeAttendance({ params,searchParams }: PageProps) {
                     </CardContent>
                 </Card>
 
-                <div className="grid lg:grid-cols-5 gap-6">
+                {/* <div className="grid lg:grid-cols-5 gap-6"> */}
 
-                    {/* QR Section */}
-                    <Card className="lg:col-span-3">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <QrCode className="h-5 w-5" />
-                                QR Code Scanner
-                            </CardTitle>
-                            <CardDescription>
-                                Generate a QR code for students to scan (Active for 30 seconds)
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <GenerateQR sessionId={sessionId as string} token={token} />
-                        </CardContent>
-                    </Card>
+                {/* QR Section */}
+                <AttendanceWrapper
+                    sessionId={sessionId as string}
+                    timetableID={timetableID}
+                    token={token as string}
+                />
 
-                    {/* Attendance List */}
-                    <LiveAttendance
-                        sessionId={+timetableID}
-                        token={token as string}
-                    />
-
-                </div>
+                {/* </div> */}
 
                 {/* Session Summary */}
                 {students.length > 0 && (

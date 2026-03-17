@@ -5,6 +5,7 @@
   --background: #ffffff;
   --foreground: #171717;
 }
+
 /* globals.css */
 @tailwind base;
 @tailwind components;
@@ -12,22 +13,28 @@
 
 /* Animated gradient background */
 .bg-gradient-animated {
-  background: linear-gradient(
-    270deg,
-    #f0f9ff,
-    #e0f2fe,
-    #dbeafe,
-    #c7d2fe,
-    #f0f9ff
-  );
+  background: linear-gradient(270deg,
+      #f0f9ff,
+      #e0f2fe,
+      #dbeafe,
+      #c7d2fe,
+      #f0f9ff);
   background-size: 500% 500%;
   animation: gradientFlow 18s ease infinite;
 }
 
 @keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Slow pulse for glow effects */
@@ -36,8 +43,17 @@
 }
 
 @keyframes pulse-slow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.75; transform: scale(1.08); }
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
 }
 
 @theme inline {
@@ -45,6 +61,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+
+  --breakpoint-xs: 0px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
 }
 
 @media (prefers-color-scheme: dark) {
