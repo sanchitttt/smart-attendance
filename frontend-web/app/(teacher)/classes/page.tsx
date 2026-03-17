@@ -5,7 +5,7 @@ import API_ROUTES from '@/app/config/api.routes';
 import Logout from '@/app/components/ui/logout';
 import { Card,CardContent } from '@/app/components/ui/card';
 import { Calendar } from 'lucide-react';
-import { LogoutButton } from '@/app/components/LogoutBtn';
+import { LogoutButton } from '@/app/components/login/LogoutBtn';
 import { apiFetch } from "@/app/lib/apiFetch";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;

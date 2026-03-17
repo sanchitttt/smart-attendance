@@ -13,9 +13,9 @@ import { QRCodeSVG } from 'qrcode.react';
 import GenerateQR from '@/app/components/GenerateQR';
 import BackButton from '@/app/components/ui/back-button';
 import Logout from '@/app/components/ui/logout';
-import LiveAttendance from './LiveAttendance';
-import SessionClosed from './SessionClosed';
-import AttendanceWrapper from './AttendanceWrapper';
+import LiveAttendance from '../../../components/attendance/LiveAttendance';
+import SessionClosed from '../../../components/attendance/SessionClosed';
+import AttendanceWrapper from '../../../components/attendance/AttendanceWrapper';
 import { apiFetch } from "@/app/lib/apiFetch";
 
 interface Cls {

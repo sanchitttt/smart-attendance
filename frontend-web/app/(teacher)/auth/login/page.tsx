@@ -1,6 +1,6 @@
 // app/login/page.tsx
 import type { Metadata } from "next";
-import LoginForm from "@/app/components/LoginForm";
+import LoginForm from "@/app/components/login/LoginForm";
 
 export const metadata: Metadata = {
   title: "Login",

@@ -1,9 +1,8 @@
 'use client';
 
-import { Suspense,useState } from 'react';
+import { useState } from 'react';
 import GenerateQR from '@/app/components/GenerateQR';
 import LiveAttendance from './LiveAttendance';
-import AttendanceSkeleton from './AttendanceSkeleton';
 
 interface AttendanceWrapperProps {
     sessionId: string;
