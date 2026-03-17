@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef2ff"/>
+      <stop offset="0.55" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eff6ff"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- subtle grid -->
+  <g opacity="0.12" stroke="#0f172a" stroke-width="1">
+    <path d="M0 90H1200M0 180H1200M0 270H1200M0 360H1200M0 450H1200M0 540H1200"/>
+    <path d="M120 0V630M240 0V630M360 0V630M480 0V630M600 0V630M720 0V630M840 0V630M960 0V630M1080 0V630"/>
+  </g>
+
+  <!-- card -->
+  <g filter="url(#shadow)">
+    <rect x="110" y="140" width="980" height="350" rx="28" fill="#ffffff" fill-opacity="0.85" stroke="#e2e8f0"/>
+    <rect x="150" y="190" width="8" height="250" rx="4" fill="url(#accent)"/>
+
+    <text x="190" y="245" font-family="Poppins, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="54" font-weight="700" fill="#0f172a">
+      Smart Attendance
+    </text>
+    <text x="190" y="300" font-family="Poppins, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="28" font-weight="500" fill="#334155">
+      QR-based classroom attendance in seconds
+    </text>
+
+    <!-- chips -->
+    <g font-family="Poppins, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="20" font-weight="600">
+      <rect x="190" y="340" width="210" height="48" rx="24" fill="#4f46e5" fill-opacity="0.10" stroke="#4f46e5" stroke-opacity="0.18"/>
+      <text x="215" y="372" fill="#3730a3">Live tracking</text>
+
+      <rect x="420" y="340" width="250" height="48" rx="24" fill="#2563eb" fill-opacity="0.10" stroke="#2563eb" stroke-opacity="0.18"/>
+      <text x="445" y="372" fill="#1e40af">Secure sessions</text>
+
+      <rect x="690" y="340" width="220" height="48" rx="24" fill="#0f172a" fill-opacity="0.06" stroke="#0f172a" stroke-opacity="0.10"/>
+      <text x="715" y="372" fill="#334155">Fast setup</text>
+    </g>
+  </g>
+</svg>

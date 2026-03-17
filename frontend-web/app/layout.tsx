@@ -16,46 +16,37 @@ export const metadata: Metadata = {
     template: "%s | Smart Attendance", // for child pages: "My Classes | Smart Attendance"
   },
   description: "Secure, real-time attendance tracking using QR codes for schools and colleges.",
-  
-  // // Open Graph / Facebook, LinkedIn, WhatsApp etc.
-  // openGraph: {
-  //   title: "Smart Attendance",
-  //   description: "QR-based attendance system for educational institutions",
-  //   url: "https://your-domain.com",
-  //   siteName: "Smart Attendance",
-  //   images: [
-  //     {
-  //       url: "/og-image.jpg",           // ← add a 1200×630 image in /public
-  //       width: 1200,
-  //       height: 630,
-  //       alt: "Smart Attendance Dashboard",
-  //     },
-  //   ],
-  //   locale: "en_IN",
-  //   type: "website",
-  // },
 
-  // // Twitter / X cards
-  // twitter: {
-  //   card: "summary_large_image",
-  //   title: "Smart Attendance",
-  //   description: "Modern attendance solution for classrooms",
-  //   images: ["/og-image.jpg"],
-  // },
+  openGraph: {
+    title: "Smart Attendance",
+    description:
+      "Secure, real-time attendance tracking using QR codes for schools and colleges.",
+    siteName: "Smart Attendance",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "Smart Attendance",
+      },
+    ],
+    locale: "en_IN",
+    type: "website",
+  },
 
-  // // Icons (recommended)
-  // icons: {
-  //   icon: "/favicon.ico",
-  //   shortcut: "/favicon-32x32.png",
-  //   apple: "/apple-touch-icon.png",
-  // },
+  twitter: {
+    card: "summary_large_image",
+    title: "Smart Attendance",
+    description:
+      "Secure, real-time attendance tracking using QR codes for schools and colleges.",
+    images: ["/og-image.svg"],
+  },
 
-  // // Optional extras
-  // manifest: "/site.webmanifest",
-  // robots: {
-  //   index: true,
-  //   follow: true,
-  // },
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/apple-touch-icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -68,6 +59,19 @@ export default function RootLayout({
       <body className={`${poppins.variable} antialiased`}>
         {children}
         <Toaster />
+        <footer className="absolute bottom-[5px] w-full py-4 text-center text-gray-400 bg-transparent">
+          <p>
+            Made with ❤️ by{' '}
+            <a
+              href="https://sanchittewari.vercel.app" // replace with your website
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              Sanchit
+            </a>
+          </p>
+        </footer>
       </body>
     </html>
   );

@@ -69,15 +69,15 @@ export default function LiveAttendance({ sessionId,token,className,active }: Pro
                 transition={{ duration: 0.4 }}
                 className={`${className}`}
             >
-                <Card className={`w-[100%]`}>
+                <Card className="w-full border border-slate-200/70 bg-white/75 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center justify-between">
                             <span className="flex items-center gap-2">
-                                <Users className="h-5 w-5" />
+                                <Users className="h-5 w-5 text-slate-700" />
                                 Live Attendance
                             </span>
 
-                            <Badge variant="secondary" className="text-lg px-3 py-1">
+                            <Badge variant="secondary" className="text-base px-3 py-1">
                                 {students.length}
                             </Badge>
                         </CardTitle>
@@ -88,15 +88,16 @@ export default function LiveAttendance({ sessionId,token,className,active }: Pro
                     </CardHeader>
 
                     <CardContent>
-                        <ScrollArea className="h-[500px] pr-4">
+                        <ScrollArea className="h-[520px] pr-4">
 
                             {students.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                                    <Users className="h-12 w-12 mb-2 opacity-30" />
-                                    <p>No students have checked in yet</p>
+                                <div className="flex flex-col items-center justify-center py-14 text-gray-500">
+                                    <Users className="h-12 w-12 mb-3 opacity-25" />
+                                    <p className="font-medium text-gray-700">No check-ins yet</p>
+                                    <p className="text-sm text-gray-500 mt-1">This list updates automatically.</p>
                                 </div>
                             ) : (
-                                <div className="space-y-2">
+                                <div className="space-y-2.5">
                                     <AnimatePresence>
                                         {students.map((student) => (
                                             <motion.div
@@ -104,11 +105,11 @@ export default function LiveAttendance({ sessionId,token,className,active }: Pro
                                                 initial={{ opacity: 0,x: -20 }}
                                                 animate={{ opacity: 1,x: 0 }}
                                                 transition={{ duration: 0.3 }}
-                                                className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
+                                                className="flex items-center justify-between p-3 bg-green-50/70 border border-green-200/80 rounded-xl"
                                             >
                                                 <div className="flex items-center gap-3">
 
-                                                    <div className="h-8 w-8 rounded-full bg-green-600 flex items-center justify-center text-white font-medium">
+                                                    <div className="h-9 w-9 rounded-full bg-green-600 flex items-center justify-center text-white font-semibold">
                                                         {student.name.charAt(0)}
                                                     </div>
 

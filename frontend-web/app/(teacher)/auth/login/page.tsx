@@ -1,6 +1,12 @@
 // app/login/page.tsx
+import type { Metadata } from "next";
 import LoginForm from "@/app/components/LoginForm";
 
+export const metadata: Metadata = {
+  title: "Login",
+  description:
+    "Sign in to Smart Attendance to manage classes and run QR-based attendance sessions.",
+};
 
 export default function LoginPage() {
   return (
@@ -27,7 +33,7 @@ export default function LoginPage() {
             <div className="absolute -inset-4 bg-gradient-to-r from-indigo-400/20 to-blue-400/20 rounded-full blur-xl animate-pulse-slow" />
             <div className="relative bg-gradient-to-br from-indigo-600 to-blue-600 p-6 rounded-2xl shadow-2xl">
               <svg
-                className="w-14 h-14 text-white"
+                className="w-14 h-14 text-white overflow-visible"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

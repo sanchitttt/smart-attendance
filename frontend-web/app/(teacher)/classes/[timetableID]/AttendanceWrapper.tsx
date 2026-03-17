@@ -26,12 +26,14 @@ export default function AttendanceWrapper({ sessionId,timetableID,token }: Atten
             )}
 
             {/* Attendance List */}
-            <LiveAttendance
-                sessionId={+sessionId}
-                token={token}
-                className={qrStatus === 'finished' ? 'w-[100%]' : 'sm:w-[100%] md:w-[30%]'}
-                active={qrStatus != 'idle'}
-            />
+            <div className={qrStatus === 'finished' ? "w-[100%]" : "xs:w-[100%] md:w-[30%]"}>
+                <LiveAttendance
+                    sessionId={+sessionId}
+                    token={token}
+                    className="w-full"
+                    active={qrStatus != 'idle'}
+                />
+            </div>
 
         </div>
     );

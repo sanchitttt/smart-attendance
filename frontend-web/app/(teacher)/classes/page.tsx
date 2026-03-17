@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cookies } from 'next/headers';
 import ClassesUI from '@/app/components/ClassesUI';
 import { redirect } from 'next/navigation';
@@ -9,6 +10,12 @@ import { Calendar } from 'lucide-react';
 import { LogoutButton } from '@/app/components/LogoutBtn';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
+
+export const metadata: Metadata = {
+    title: "My Classes",
+    description:
+        "View today’s schedule, review class details, and start a QR-based attendance session.",
+};
 
 export default async function ClassesPage() {
     const cookieStore = await cookies();
@@ -57,7 +64,7 @@ export default async function ClassesPage() {
                 {/* Header */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
-                        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-gray-900">
+                        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
                             My Classes
                         </h1>
                         <p className="text-sm sm:text-base text-gray-600">

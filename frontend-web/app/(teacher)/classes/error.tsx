@@ -4,6 +4,7 @@ import Logout from "@/app/components/ui/logout";
 import { AlertCircle,RefreshCw,Home } from 'lucide-react';
 import { Button } from "@/app/components/ui/button";
 import { Card,CardContent } from "@/app/components/ui/card";
+import { useState } from "react";
 
 export default function Error({
   error,
@@ -12,16 +13,20 @@ export default function Error({
   error: Error;
   reset: () => void;
 }) {
+  const [errorId] = useState(() =>
+    Math.random().toString(36).substring(2,10).toUpperCase()
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         {/* Header with Logout */}
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 text-white p-3 rounded-xl shadow-md">
+            {/* <div className="bg-indigo-600 text-white p-3 rounded-xl shadow-md">
               <AlertCircle className="h-7 w-7" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">Smart Attendance</h1>
+            </div> */}
+            {/* <h1 className="text-3xl font-bold text-gray-900">Smart Attendance</h1> */}
           </div>
 
           <Logout />
@@ -70,7 +75,7 @@ export default function Error({
 
             {/* Support info */}
             <p className="text-sm text-gray-500 pt-4">
-              Error ID: {Math.random().toString(36).substring(2,10).toUpperCase()} • Contact support if needed
+              Error ID: {errorId} • Contact support if needed
             </p>
           </CardContent>
         </Card>

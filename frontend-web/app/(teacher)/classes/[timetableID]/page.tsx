@@ -1,4 +1,5 @@
 import React from 'react'
+import type { Metadata } from "next";
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card,CardContent,CardDescription,CardHeader,CardTitle } from '@/app/components/ui/card';
@@ -29,6 +30,12 @@ interface Cls {
     startYear: string;
     endYear: string;
 }
+
+export const metadata: Metadata = {
+    title: "Attendance",
+    description:
+        "Generate a QR code and track live attendance for this class session.",
+};
 
 
 
@@ -109,97 +116,99 @@ async function TakeAttendance({ params,searchParams }: PageProps) {
     }
 
     return (
-        <div className="relative min-h-screen  p-4 overflow-hidden">
-            {/* Background Pattern */}
+        <div className="relative min-h-screen w-full overflow-hidden text-gray-900">
+            {/* Clean subtle background (match /classes) */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-slate-50" />
             <div
-                className="absolute inset-0"
+                className="absolute inset-0 opacity-[0.35]"
                 style={{
-                    backgroundImage: `
-        linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
-        linear-gradient(-45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%)
-      `,
-                    backgroundSize: "40px 40px",
-                    WebkitMaskImage:
-                        "radial-gradient(ellipse 100% 80% at 50% 100%, #000 50%, transparent 90%)",
-                    maskImage:
-                        "radial-gradient(ellipse 100% 80% at 50% 100%, #000 50%, transparent 90%)",
+                    backgroundImage:
+                        "linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px)",
+                    backgroundSize: "48px 48px",
+                    maskImage: "radial-gradient(circle at 50% 0%, black 35%, transparent 75%)",
+                    WebkitMaskImage: "radial-gradient(circle at 50% 0%, black 35%, transparent 75%)",
                 }}
             />
 
             {/* Page Content */}
-            <div className="relative z-10 max-w-7xl mx-auto space-y-6">
+            <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
 
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-4">
                         <BackButton />
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Attendance System</h1>
-                            <p className="text-gray-600 mt-1">Welcome, {cls.adminName}</p>
+                        <div className="space-y-1">
+                            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
+                                Attendance
+                            </h1>
+                            <p className="text-sm sm:text-base text-gray-600">
+                                Welcome back, <span className="font-medium text-gray-800">{cls.adminName}</span>
+                            </p>
                         </div>
                     </div>
-                    <Logout />
+
+                    <div className="flex items-center justify-start sm:justify-end">
+                        <Logout />
+                    </div>
                 </div>
 
                 {/* Class Information Card */}
-                <Card className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-                    <CardContent className="pt-6">
-                        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
-
-                            <div className="flex items-start gap-3">
-                                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                <Card className="border border-slate-200/70 shadow-sm bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+                    <CardContent className="p-5 sm:p-6">
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div className="flex items-start gap-3 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-3">
+                                <div className="h-10 w-10 rounded-xl bg-indigo-600/10 text-indigo-700 flex items-center justify-center ring-1 ring-indigo-600/10 flex-shrink-0">
                                     <BookOpen className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <p className="text-sm text-white/80">Subject</p>
-                                    <p className="font-semibold text-lg">{cls.subjectName}</p>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] leading-4 text-gray-500">Subject</p>
+                                    <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">{cls.subjectName}</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-3">
-                                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                            <div className="flex items-start gap-3 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-3">
+                                <div className="h-10 w-10 rounded-xl bg-slate-900/5 text-slate-700 flex items-center justify-center ring-1 ring-slate-900/10 flex-shrink-0">
                                     <Users className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <p className="text-sm text-white/80">Program</p>
-                                    <p className="font-semibold text-lg">{cls.programName}</p>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] leading-4 text-gray-500">Program</p>
+                                    <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">{cls.programName}</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-3">
-                                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                            <div className="flex items-start gap-3 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-3">
+                                <div className="h-10 w-10 rounded-xl bg-slate-900/5 text-slate-700 flex items-center justify-center ring-1 ring-slate-900/10 flex-shrink-0">
                                     <Clock className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <p className="text-sm text-white/80">Time</p>
-                                    <p className="font-semibold text-lg">
+                                <div className="min-w-0">
+                                    <p className="text-[11px] leading-4 text-gray-500">Time</p>
+                                    <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">
                                         {formatTimeRange(cls.startTime,cls.endTime)}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-3">
-                                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                            <div className="flex items-start gap-3 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-3">
+                                <div className="h-10 w-10 rounded-xl bg-slate-900/5 text-slate-700 flex items-center justify-center ring-1 ring-slate-900/10 flex-shrink-0">
                                     <Users className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <p className="text-sm text-white/80">Batch</p>
-                                    <p className="font-semibold text-lg">
+                                <div className="min-w-0">
+                                    <p className="text-[11px] leading-4 text-gray-500">Batch</p>
+                                    <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">
                                         {`${cls.startYear}-${cls.endYear}`}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-3">
-                                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                            <div className="flex items-start gap-3 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-3">
+                                <div className="h-10 w-10 rounded-xl bg-slate-900/5 text-slate-700 flex items-center justify-center ring-1 ring-slate-900/10 flex-shrink-0">
                                     <BookOpen className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <p className="text-sm text-white/80">Semester</p>
-                                    <p className="font-semibold text-lg">{cls.semester}</p>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] leading-4 text-gray-500">Semester</p>
+                                    <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">{cls.semester}</p>
                                 </div>
                             </div>
-
                         </div>
                     </CardContent>
                 </Card>

@@ -121,7 +121,7 @@ export default function AnimatedContent({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <GenerateQR timetableEntryID={timetableID} token={token} />
+              <GenerateQR sessionId={sessionId} token={token} />
             </CardContent>
           </Card>
         </motion.div>
