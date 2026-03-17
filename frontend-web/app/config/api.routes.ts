@@ -1,15 +1,26 @@
-const BASE_URL_V1 = `/api/v1`;
+const BASE_PATH_V1 = "/api/v1";
 
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const v1 = (path: string) => `${API_BASE_URL}${BASE_PATH_V1}${path}`
 
 const API_ROUTES = {
-    LOGIN: `${BASE_URL_V1}/admin/login`,
-    LOGOUT: `${BASE_URL_V1}/admin/logout`,
-    MY_CLASSES: `${BASE_URL_V1}/timetable/class/all`,
-    CLASS_BY_ID: `${BASE_URL_V1}/timetable/class`,
-    START_SESSION: `${BASE_URL_V1}/sessions/start`,
-    GENERATE_QR: (sid: string) => {
-        return `${BASE_URL_V1}/sessions/${sid}/generate-qr`
-    },
+    // Auth
+    LOGIN: v1("/admin/login"),
+    LOGOUT: v1("/admin/logout"),
+
+    // Timetable / classes
+    MY_CLASSES: v1("/timetable/class/all"),
+    CLASS_SESSION_DETAILS: (timetableId: string | number,sessionId: string | number) =>
+        v1(`/timetable/class/${timetableId}/${sessionId}`),
+
+    // Sessions
+    CREATE_SESSION: v1("/sessions/create"),
+    SESSION_START: (sid: string | number) => v1(`/sessions/${sid}/start`),
+    GENERATE_QR: (sid: string | number) => v1(`/sessions/${sid}/generate-qr`),
+
+    // Attendance
+    SESSION_ATTENDANCE: (sessionId: string | number) => v1(`/attendance/session/${sessionId}`),
 };
 
 export default API_ROUTES;

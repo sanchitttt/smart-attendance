@@ -6,6 +6,7 @@ import { Card,CardContent,CardHeader,CardTitle,CardDescription } from "@/app/com
 import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { Users,CheckCircle2 } from "lucide-react";
 import { AnimatePresence,motion } from "framer-motion";
+import API_ROUTES from "@/app/config/api.routes";
 
 type Student = {
     userId: number;
@@ -30,7 +31,7 @@ export default function LiveAttendance({ sessionId,token,className,active }: Pro
             try {
                 console.log(sessionId);
                 const res = await fetch(
-                    `https://quantity-sea-organizer-made.trycloudflare.com/api/v1/attendance/session/${sessionId}`,
+                    API_ROUTES.SESSION_ATTENDANCE(sessionId),
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

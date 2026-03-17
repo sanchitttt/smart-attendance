@@ -37,7 +37,7 @@ function GenerateQR({ sessionId: sessionIdParam,token,onStatusChange }: Generate
 
             // If session is not running yet, start it
             if (status === 'idle') {
-                const res = await fetch(`https://quantity-sea-organizer-made.trycloudflare.com/api/v1/sessions/${sessionId}/start`,{
+                const res = await fetch(API_ROUTES.SESSION_START(sessionId),{
                     method: 'POST',
                     credentials: 'include',
                     headers: {
@@ -73,7 +73,7 @@ function GenerateQR({ sessionId: sessionIdParam,token,onStatusChange }: Generate
     // Fetch QR from backend
     const fetchQr = async (sid: string) => {
         try {
-            const res = await fetch(`https://quantity-sea-organizer-made.trycloudflare.com/api/v1/sessions/${sid}/generate-qr`,{
+            const res = await fetch(API_ROUTES.GENERATE_QR(sid),{
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',

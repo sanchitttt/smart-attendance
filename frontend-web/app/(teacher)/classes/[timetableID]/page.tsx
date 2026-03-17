@@ -58,7 +58,7 @@ async function TakeAttendance({ params,searchParams }: PageProps) {
 
     const token = await requireTeacherAuth();
 
-    const res = await fetch(`https://quantity-sea-organizer-made.trycloudflare.com/api/v1/timetable/class/${timetableID}/${sessionId}`,{
+    const res = await fetch(API_ROUTES.CLASS_SESSION_DETAILS(timetableID,sessionId as string),{
         headers: {
             Authorization: `Bearer ${token}`,
             Cookie: `access_token=${token}`,

@@ -26,7 +26,7 @@ export default async function ClassesPage() {
     console.log(accessToken);
 
 
-    const res = await fetch("https://quantity-sea-organizer-made.trycloudflare.com/api/v1/timetable/class/all",{
+    const res = await fetch(API_ROUTES.MY_CLASSES,{
         method: "GET",
         headers: {
             "Content-Type": "application/json",

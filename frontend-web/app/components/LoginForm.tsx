@@ -8,6 +8,7 @@ import { Loader2,AlertCircle } from 'lucide-react';
 import { onAuthStateChanged,signInWithPopup,signOut } from 'firebase/auth';
 import { auth,googleProvider } from '../lib/firebase';
 import GoogleSignInButton from './GoogleSignInBtn';
+import API_ROUTES from '../config/api.routes';
 
 export default function LoginForm() {
     const [googleLoading,setGoogleLoading] = useState(false);
@@ -30,8 +31,8 @@ export default function LoginForm() {
         try {
             const result = await signInWithPopup(auth,googleProvider);
             const idToken = await result.user.getIdToken();
-            console.log({ idToken });
-            const res = await fetch('https://quantity-sea-organizer-made.trycloudflare.com/api/v1/admin/login',{
+            console.log(API_ROUTES.LOGIN,{ idToken });
+            const res = await fetch(API_ROUTES.LOGIN,{
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },

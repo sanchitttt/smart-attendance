@@ -13,6 +13,7 @@ import { motion } from 'motion/react';
 import { useRouter } from "next/navigation";
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import API_ROUTES from '@/app/config/api.routes';
 
 interface ClassInfo {
     timetableID: number;
@@ -105,7 +106,7 @@ export default function ClassesUI({ classes,token }: Props) {
 
                                                 try {
                                                     const res = await fetch(
-                                                        "https://quantity-sea-organizer-made.trycloudflare.com/api/v1/sessions/create",
+                                                        API_ROUTES.CREATE_SESSION,
                                                         {
                                                             method: "POST",
                                                             headers: {
