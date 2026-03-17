@@ -7,7 +7,6 @@ import { Progress } from '@/app/components/ui/progress';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import API_ROUTES from '@/app/config/api.routes';
 import { notFound,redirect } from 'next/navigation';
-import { requireTeacherAuth } from '@/app/lib/auth';
 import { AlertCircle,ArrowLeft,BookOpen,CheckCircle2,Clock,Home,LogOut,QrCode,RefreshCw,Users } from 'lucide-react';
 import { AnimatePresence,motion } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -17,6 +16,7 @@ import Logout from '@/app/components/ui/logout';
 import LiveAttendance from './LiveAttendance';
 import SessionClosed from './SessionClosed';
 import AttendanceWrapper from './AttendanceWrapper';
+import { apiFetch } from "@/app/lib/apiFetch";
 
 interface Cls {
     timetableID: number;
@@ -55,15 +55,8 @@ async function TakeAttendance({ params,searchParams }: PageProps) {
 
     const students = [];
     const isActive = false;
-
-    const token = await requireTeacherAuth();
-
-    const res = await fetch(API_ROUTES.CLASS_SESSION_DETAILS(timetableID,sessionId as string),{
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Cookie: `access_token=${token}`,
-        },
-        credentials: "include" // THIS IS MANDATORY
+    const res = await apiFetch(API_ROUTES.CLASS_SESSION_DETAILS(timetableID,sessionId as string),{
+        credentials: "include",
     });
 
     console.log(res);
@@ -219,7 +212,6 @@ async function TakeAttendance({ params,searchParams }: PageProps) {
                 <AttendanceWrapper
                     sessionId={sessionId as string}
                     timetableID={timetableID}
-                    token={token as string}
                 />
 
                 {/* </div> */}

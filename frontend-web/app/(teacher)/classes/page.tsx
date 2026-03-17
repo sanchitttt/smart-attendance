@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { cookies } from 'next/headers';
 import ClassesUI from '@/app/components/ClassesUI';
 import { redirect } from 'next/navigation';
 import API_ROUTES from '@/app/config/api.routes';
-import { requireTeacherAuth } from '@/app/lib/auth';
 import Logout from '@/app/components/ui/logout';
 import { Card,CardContent } from '@/app/components/ui/card';
 import { Calendar } from 'lucide-react';
 import { LogoutButton } from '@/app/components/LogoutBtn';
+import { apiFetch } from "@/app/lib/apiFetch";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
@@ -18,20 +17,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ClassesPage() {
-    const cookieStore = await cookies();
-    console.log('Cookies in Server Component:',cookieStore.getAll().map(c => c.name));
-
-    const accessToken = cookieStore.get('access_token')?.value;
-    console.log('access_token in SC:',accessToken ? 'present' : 'missing');
-    console.log(accessToken);
-
-
-    const res = await fetch(API_ROUTES.MY_CLASSES,{
+    const res = await apiFetch(API_ROUTES.MY_CLASSES,{
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: accessToken ? `Bearer ${accessToken}` : '',
-        },
         cache: 'no-store',
     });
     console.log(res);
@@ -108,7 +95,7 @@ export default async function ClassesPage() {
                     </CardContent>
                 </Card>
 
-                <ClassesUI classes={classes} token={accessToken} />
+                <ClassesUI classes={classes} />
             </div>
         </div>
     );

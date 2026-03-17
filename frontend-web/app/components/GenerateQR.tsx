@@ -16,11 +16,10 @@ const TOTAL_TIME = REFRESH_INTERVAL * MAX_REFRESHES; // 32 seconds
 
 interface GenerateQRProps {
     sessionId: string;
-    token: string | undefined;
     onStatusChange?: (status: 'idle' | 'running' | 'finished') => void;
 }
 
-function GenerateQR({ sessionId: sessionIdParam,token,onStatusChange }: GenerateQRProps) {
+function GenerateQR({ sessionId: sessionIdParam,onStatusChange }: GenerateQRProps) {
     const [sessionId,setSessionId] = useState<string>(sessionIdParam);
     const [timeLeft,setTimeLeft] = useState<number>(TOTAL_TIME);
     const [qrValue,setQrValue] = useState<string>('');
@@ -42,7 +41,6 @@ function GenerateQR({ sessionId: sessionIdParam,token,onStatusChange }: Generate
                     credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
-                        Authorization: token ?? '',
                     },
                 });
 
@@ -77,7 +75,6 @@ function GenerateQR({ sessionId: sessionIdParam,token,onStatusChange }: Generate
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: token ?? '',
                 },
             });
 

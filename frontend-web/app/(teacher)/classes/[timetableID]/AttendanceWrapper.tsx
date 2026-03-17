@@ -8,10 +8,9 @@ import AttendanceSkeleton from './AttendanceSkeleton';
 interface AttendanceWrapperProps {
     sessionId: string;
     timetableID: string;
-    token: string;
 }
 
-export default function AttendanceWrapper({ sessionId,timetableID,token }: AttendanceWrapperProps) {
+export default function AttendanceWrapper({ sessionId,timetableID }: AttendanceWrapperProps) {
     const [qrStatus,setQrStatus] = useState<'idle' | 'running' | 'finished'>('idle');
 
     return (
@@ -20,7 +19,6 @@ export default function AttendanceWrapper({ sessionId,timetableID,token }: Atten
             {qrStatus !== 'finished' && (
                 <GenerateQR
                     sessionId={sessionId}
-                    token={token}
                     onStatusChange={setQrStatus} // let QR notify parent when finished
                 />
             )}
@@ -29,7 +27,6 @@ export default function AttendanceWrapper({ sessionId,timetableID,token }: Atten
             <div className={qrStatus === 'finished' ? "w-[100%]" : "xs:w-[100%] md:w-[30%]"}>
                 <LiveAttendance
                     sessionId={+sessionId}
-                    token={token}
                     className="w-full"
                     active={qrStatus != 'idle'}
                 />

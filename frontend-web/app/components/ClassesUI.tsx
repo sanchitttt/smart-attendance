@@ -27,10 +27,9 @@ interface ClassInfo {
 
 interface Props {
     classes: ClassInfo[];
-    token?: string
 }
 
-export default function ClassesUI({ classes,token }: Props) {
+export default function ClassesUI({ classes }: Props) {
     const router = useRouter();
     const [loading,setLoading] = useState(false);
     console.log('Classes => ',classes);
@@ -109,9 +108,9 @@ export default function ClassesUI({ classes,token }: Props) {
                                                         API_ROUTES.CREATE_SESSION,
                                                         {
                                                             method: "POST",
+                                                            credentials: "include",
                                                             headers: {
                                                                 "Content-Type": "application/json",
-                                                                Authorization: `Bearer ${token}`,
                                                             },
                                                             body: JSON.stringify({
                                                                 timetableEntryId: cls.timetableID

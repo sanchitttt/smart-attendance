@@ -7,7 +7,7 @@ import { auth } from "@/app/lib/firebase"
 import { signOut } from "firebase/auth"
 import { toast } from "react-hot-toast"
 import { useState } from "react"
-import { logout } from "@/app/lib/auth"
+import API_ROUTES from "@/app/config/api.routes"
 
 
 function Logout() {
@@ -19,8 +19,12 @@ function Logout() {
 
         try {
             await signOut(auth);
+            await fetch(API_ROUTES.LOGOUT,{
+                method: "POST",
+                credentials: "include",
+            });
             toast.success("You have been signed out");
-            logout();
+            router.push("/auth/login");
         } catch (error) {
             console.error("Logout error:");
             console.log(error);

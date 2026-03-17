@@ -121,7 +121,7 @@ export default function AnimatedContent({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <GenerateQR sessionId={sessionId} token={token} />
+              <GenerateQR sessionId={sessionId} />
             </CardContent>
           </Card>
         </motion.div>

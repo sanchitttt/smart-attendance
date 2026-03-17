@@ -7,6 +7,7 @@ import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { Users,CheckCircle2 } from "lucide-react";
 import { AnimatePresence,motion } from "framer-motion";
 import API_ROUTES from "@/app/config/api.routes";
+import { apiFetch } from "@/app/lib/apiFetch";
 
 type Student = {
     userId: number;
@@ -16,12 +17,11 @@ type Student = {
 
 type Props = {
     sessionId: number;
-    token: string;
     className: string;
     active?: boolean; // <-- only start polling when active is true
 };
 
-export default function LiveAttendance({ sessionId,token,className,active }: Props) {
+export default function LiveAttendance({ sessionId,className,active }: Props) {
     console.log('Active inside liveattendance =>',active);
     const [students,setStudents] = useState<Student[]>([]);
 
@@ -30,12 +30,10 @@ export default function LiveAttendance({ sessionId,token,className,active }: Pro
         const fetchAttendance = async () => {
             try {
                 console.log(sessionId);
-                const res = await fetch(
+                const res = await apiFetch(
                     API_ROUTES.SESSION_ATTENDANCE(sessionId),
                     {
                         headers: {
-                            Authorization: `Bearer ${token}`,
-                            Cookie: `access_token=${token}`,
                         },
                         credentials: "include",
                     }
@@ -58,7 +56,7 @@ export default function LiveAttendance({ sessionId,token,className,active }: Pro
 
         return () => clearInterval(interval);
 
-    },[sessionId,token,active]);
+    },[sessionId,active]);
 
     return (
         <AnimatePresence mode="wait">
