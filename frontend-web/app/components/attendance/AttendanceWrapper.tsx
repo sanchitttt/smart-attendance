@@ -25,9 +25,9 @@ export default function AttendanceWrapper({ sessionId,timetableID }: AttendanceW
             {/* Attendance List */}
             <div className={qrStatus === 'finished' ? "w-[100%]" : "xs:w-[100%] md:w-[30%]"}>
                 <LiveAttendance
-                    sessionId={+sessionId}
-                    className="w-full"
-                    active={qrStatus != 'idle'}
+                    sessionId={Number(sessionId)}  // must be number, not Date or class
+                    className={"w-full"}
+                    active={qrStatus !== 'idle'}   // boolean is fine
                 />
             </div>
 

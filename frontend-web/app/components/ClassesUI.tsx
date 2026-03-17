@@ -94,7 +94,7 @@ export default function ClassesUI({ classes }: Props) {
                                         </div>
                                     )} */}
                                 {/* Change back to old */}
-                                {cls.status === 'old' && (
+                                {cls.status == 'upcoming' && (
                                     <div className="mt-6 pt-4 border-t border-slate-200/70 flex items-center justify-between gap-3">
                                         <Button
                                             className="w-full sm:w-auto disabled:opacity-60 shadow-sm"

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect,useState } from "react";
 import { Badge } from "@/app/components/ui/badge";
@@ -8,6 +8,7 @@ import { Users,CheckCircle2 } from "lucide-react";
 import { AnimatePresence,motion } from "framer-motion";
 import API_ROUTES from "@/app/config/api.routes";
 import { apiFetch } from "@/app/lib/apiFetch";
+import toast from "react-hot-toast";
 
 type Student = {
     userId: number;
@@ -22,30 +23,29 @@ type Props = {
 };
 
 export default function LiveAttendance({ sessionId,className,active }: Props) {
-    console.log('Active inside liveattendance =>',active);
     const [students,setStudents] = useState<Student[]>([]);
 
     useEffect(() => {
         if (!active) return; // do nothing if not active
         const fetchAttendance = async () => {
             try {
-                console.log(sessionId);
-                const res = await apiFetch(
+                const res = await fetch(
                     API_ROUTES.SESSION_ATTENDANCE(sessionId),
                     {
                         headers: {
+                            'Content-Type': 'application/json'
                         },
                         credentials: "include",
                     }
                 );
 
                 const json = await res.json();
-                console.log(json);
                 if (!json.error) {
                     setStudents(json.data);
                 }
 
             } catch (err) {
+                toast.error("Something went wrong!");
                 console.error("Polling error:",err);
             }
         };
