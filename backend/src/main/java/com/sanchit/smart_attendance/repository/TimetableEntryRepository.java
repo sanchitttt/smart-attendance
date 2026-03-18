@@ -34,7 +34,7 @@ public interface TimetableEntryRepository
                 p.program_name AS programName,
                 sem.semester_number AS semester,
                 CASE
-                    WHEN CURRENT_TIME >= ts.end_time + INTERVAL '5 minutes'
+                    WHEN CURRENT_TIME >= ts.end_time + INTERVAL '10 minutes'
                         THEN 'old'
                     WHEN CURRENT_TIME BETWEEN ts.start_time AND ts.end_time
                         THEN 'current'

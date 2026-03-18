@@ -6,13 +6,9 @@ import com.sanchit.smart_attendance.entity.Session;
 import com.sanchit.smart_attendance.enums.SessionStatus;
 import com.sanchit.smart_attendance.exception.BadRequestException;
 import com.sanchit.smart_attendance.repository.SessionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 @Service
 public class QrService {
@@ -24,6 +20,9 @@ public class QrService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SessionRepository sessionRepository;
     private final HmacService hmacService;
+
+    @Autowired
+    EnvironmentService environmentService;
 
     public QrService(SessionRepository sessionRepository, HmacService hmacService) {
         this.sessionRepository = sessionRepository;
@@ -42,17 +41,13 @@ public class QrService {
         }
 
         // Ownership check
-        if (!session.getTimetableEntry()
+        if (environmentService.isProduction() && !session.getTimetableEntry()
                 .getAdmin()
                 .getAdminId()
-                .equals(4l)) { // todo: change to adminId
+                .equals(adminId)) {
             throw new BadRequestException("Unauthorized");
         }
 
-        // Session must be ACTIVE
-//        if (session.getStatus() != SessionStatus.ACTIVE) {
-//            throw new BadRequestException("Session is not active");
-//        }
 
         long issuedAt = System.currentTimeMillis();
         long expiresAt = issuedAt + (session.getQrWindowSeconds() * 1000L);

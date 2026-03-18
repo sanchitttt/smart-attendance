@@ -10,6 +10,7 @@ import com.sanchit.smart_attendance.repository.*;
 import com.sanchit.smart_attendance.repository.projection.TeacherClassTile;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -30,6 +31,9 @@ public class SessionService {
     private final SemesterRepository semesterRepository;
     private final TimetableEntryRepository timetableEntryRepository;
 
+    @Autowired
+    EnvironmentService environmentService;
+
     private DayOfWeekEnum toDbDay(java.time.DayOfWeek javaDay) {
         return switch (javaDay) {
             case MONDAY -> DayOfWeekEnum.MON;
@@ -47,7 +51,7 @@ public class SessionService {
     public Map<String, Object> getMySessions(Long adminId) {
 
         // Hardcoded for testing
-        LocalDate today = LocalDate.of(2026, 2, 5); // Thursday
+        LocalDate today = LocalDate.of(2026, 2, 5); // Thursday // todo: Change
         String day = "THU"; // or convert from LocalDate
 
         List<TeacherClassTile> rows =
@@ -85,14 +89,14 @@ public class SessionService {
                         .orElseThrow(() ->
                                 new NotFoundException("Session not found"));
 
-        // 🔐 Ownership check, todo: add back in production
-//        if (!session.getTimetableEntry()
-//                .getAdmin()
-//                .getAdminId()
-//                .equals(adminId)) {
-//
-//            throw new BadRequestException("Unauthorized");
-//        }
+        // 🔐 Ownership check
+        if (environmentService.isProduction() && !session.getTimetableEntry()
+                .getAdmin()
+                .getAdminId()
+                .equals(adminId)) {
+
+            throw new BadRequestException("Unauthorized");
+        }
 
         // ⏱ Auto-close logic
         if (session.getStartedAt() != null) {
@@ -143,9 +147,9 @@ public class SessionService {
                                 new BadRequestException("Timetable entry not found"));
 
         // 🔐 Ownership check
-//        if (!entry.getAdmin().getAdminId().equals(adminId)) { // todo: uncomment in prod
-//            throw new BadRequestException("Unauthorized");
-//        }
+        if (environmentService.isProduction() && !entry.getAdmin().getAdminId().equals(adminId)) {
+            throw new BadRequestException("Unauthorized");
+        }
 
         LocalDate today = LocalDate.now();
 
@@ -173,7 +177,7 @@ public class SessionService {
                                 new BadRequestException("Timetable entry not found"));
 
         // 🔐 Ownership check
-        if (!entry.getAdmin().getAdminId().equals(4l)) {  // todo: change back to adminID
+        if (environmentService.isProduction() && !entry.getAdmin().getAdminId().equals(adminId)) {
             throw new BadRequestException("Unauthorized");
         }
 

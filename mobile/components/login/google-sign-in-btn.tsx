@@ -1,6 +1,6 @@
 import { auth } from "@/services/firebase";
 import { getDeviceInfo } from "@/utils/device";
-import { saveToken } from "@/utils/secureStore";
+import { saveToken, saveUserProfile } from "@/utils/secureStore";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { useRouter } from "expo-router";
 import { GoogleAuthProvider,signInWithCredential } from "firebase/auth";
@@ -56,7 +56,7 @@ export default function GoogleSignInButton() {
 
             console.log(payload);
 
-            const response = await fetch("https://quantity-sea-organizer-made.trycloudflare.com/api/v1/users/login",{
+            const response = await fetch("https://muscles-burlington-trace-apart.trycloudflare.com/api/v1/users/login",{
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -68,10 +68,23 @@ export default function GoogleSignInButton() {
 
             console.log(response);
             console.log(data);
-            await saveToken(data?.token);
+
             if (!response.ok) {
                 throw new Error(data.message);
             }
+
+            // Persist auth token + profile
+            await saveToken(data.token);
+            await saveUserProfile({
+                token: data.token,
+                role: data.role,
+                name: data.name,
+                email: data.email,
+                rollNo: data.rollNo,
+                batchStartYear: data.batchStartYear,
+                program: data.program,
+                profilePictureUrl: data.profilePictureUrl,
+            });
 
             router.replace("/home");
 

@@ -47,8 +47,6 @@ public class User {
     @Column(name = "face_embedding_path")
     private String faceEmbeddingPath;
 
-    @Column(nullable = false)
-    private String passwordHash;
 
     @Column(name = "id_token")
     private String idToken;

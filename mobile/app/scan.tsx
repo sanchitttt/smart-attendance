@@ -1,3 +1,4 @@
+import LoadingOverlay from "@/components/loading-overlay";
 import PermissionFallback from "@/components/permission-fallback";
 import API_CONFIG from "@/constants/api-config";
 import useLocation from "@/hooks/use-location";
@@ -16,16 +17,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Scan() {
   const [permission,requestPermission] = useCameraPermissions();
-  const { location, error, loading, refetch } = useLocation(10000);
+  const { location,refetch } = useLocation(10000);
   const [step,setStep] = useState(1); // 1: QR, 2: Selfie, 3: Success
   const [scanned,setScanned] = useState(false);
   const [retryCount,setRetryCount] = useState(0);
   const [cameraReady,setCameraReady] = useState(false);
+  const [loading,setLoading] = useState(false);
   const cameraRef = useRef<CameraView | null>(null);
   const sessionIdRef = useRef<number | null>(null);
   const router = useRouter();
 
-  
+
   if (!permission) return <View />;
 
   if (!permission.granted) {
@@ -73,9 +75,9 @@ export default function Scan() {
       longitude: location?.longitude ?? 0,
     };
 
-    console.log(payload);
+    setLoading(true);
     const token = await getToken();
-    const res = await fetch("https://quantity-sea-organizer-made.trycloudflare.com/api/v1/attendance/scan-qr",{
+    const res = await fetch("https://muscles-burlington-trace-apart.trycloudflare.com/api/v1/attendance/scan-qr",{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -90,6 +92,8 @@ export default function Scan() {
       throw new Error(err.message || 'Scan failed');
     }
 
+    setLoading(false);
+
     console.log('Scan successful:',await res.json());
   };
 
@@ -103,7 +107,7 @@ export default function Scan() {
 
     try {
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.7,
+        quality: 0.75,
         base64: true,
         skipProcessing: true
       });
@@ -119,6 +123,7 @@ export default function Scan() {
       //   sessionId: sessionIdRef.current,
       //   selfieImageBase64: base64Image
       // });
+      setLoading(true);
       const res = await fetch(API_CONFIG.FACE_VERIFY,{
         method: "POST",
         headers: {
@@ -130,6 +135,7 @@ export default function Scan() {
         })
       });
 
+      setLoading(false);
       console.log(res);
 
       setStep(3);
@@ -298,6 +304,9 @@ export default function Scan() {
           </TouchableOpacity>
         </View>
       )}
+      {
+        loading && <LoadingOverlay visible={loading} />
+      }
     </SafeAreaView>
   );
 }

@@ -47,8 +47,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         System.out.println("└───────────────────────────────");
         String token = resolveToken(request);
         if (token != null && jwtService.isTokenValid(token)) {
-            System.out.println("Token is => valid");
-
 
             Long id = jwtService.extractId(token);
             Role role = jwtService.extractRole(token);
@@ -77,7 +75,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             : new UserPrincipal(id, email);
 
 
-            System.out.println("AUTH SET → " + ((UserDetails) principal).getAuthorities());
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
                             principal,
@@ -85,36 +82,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             ((UserDetails) principal).getAuthorities()
                     );
 
-//            auth.setAuthenticated(true);
-//            Authentication current = SecurityContextHolder.getContext().getAuthentication();
-//            System.out.println("After set - Authenticated? " + (current != null ? current.isAuthenticated() : "null"));
-//            System.out.println("After set - Principal: " + (current != null ? current.getPrincipal() : "null"));
-//            System.out.println("After set - Details: " + (current != null ? current.getDetails() : "null"));
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
-        System.out.println("Calling chain.doFilter() → should reach controller");
         filterChain.doFilter(request, response);
-        System.out.println("LAST FILTER END → response already committed");
     }
 
     private String resolveToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ") && !authHeader.endsWith("undefined")) {
-            System.out.println("Authorization : " + authHeader);
             return authHeader.substring(7);
         }
         // Check Cookies FIRST
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                System.out.println("Cookie => " + cookie);
                 if ("access_token".equals(cookie.getName())) {
-                    System.out.println("Loo ji mil gaya");
                     return cookie.getValue();
                 };
             }
         }
-        // Check Header SECOND
 
         return null;
     }

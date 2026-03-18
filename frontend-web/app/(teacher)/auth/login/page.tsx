@@ -65,11 +65,11 @@ export default function LoginPage() {
           </div>
 
           {/* Firebase badge */}
-          <div className="px-8 py-5 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex justify-center">
+          {/* <div className="px-8 py-5 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex justify-center">
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full bg-[#FFCA28]/10 border border-[#FFCA28]/30 text-[#F57C00] shadow-sm">
               Powered by <span className="font-semibold text-[#F57C00]">Firebase</span>
             </span>
-          </div>
+          </div> */}
         </div>
 
         <p className="mt-8 text-center text-sm text-gray-600">

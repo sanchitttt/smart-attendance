@@ -28,7 +28,6 @@ public class SessionController {
     public ResponseEntity<?> getMySessions(
             @AuthenticationPrincipal AdminPrincipal admin
     ) {
-        System.out.println(">>> HIT getMySessions controller");
 
         return ResponseEntity.ok(
                 Map.of(
@@ -43,7 +42,6 @@ public class SessionController {
             @AuthenticationPrincipal AdminPrincipal admin,
             @RequestBody StartSessionRequest request
     ) {
-        System.out.println("Reached create controller");
         Session session = sessionService.createSession(
                 request.getTimetableEntryId(),
                 admin.getId()
@@ -71,7 +69,6 @@ public class SessionController {
                         admin.getId()
                 );
 
-        System.out.println("Pahuch gaya beyyyy!");
         return ResponseEntity.ok(
                 Map.of(
 

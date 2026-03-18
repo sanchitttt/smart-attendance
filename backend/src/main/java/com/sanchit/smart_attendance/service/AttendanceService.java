@@ -81,9 +81,9 @@ public class AttendanceService {
 
         // 2️⃣ Time window check
         long now = System.currentTimeMillis();
-//        if (now > req.expiresAt()) {
-//            throw new BadRequestException("QR expired");
-//        }
+        if (environmentService.isProduction() && now > req.expiresAt()) {
+            throw new BadRequestException("QR expired");
+        }
 
         if (!environmentService.isDevelopment()) {
             double distance = calculateDistance(

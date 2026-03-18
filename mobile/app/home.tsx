@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,270 +9,415 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+
 import { signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
-import { useRouter } from 'expo-router';
-import { MaterialIcons,Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { getLocation } from '@/utils/location';
+import { deleteToken, deleteUserProfile, getToken } from '@/utils/secureStore';
+import useUserProfile from '@/hooks/use-user-profile';
+import useLocation from '@/hooks/use-location';
+
+import AppBackground from '@/components/ui/AppBackground';
+import SurfaceCard from '@/components/ui/SurfaceCard';
+import { PrimaryButton } from '@/components/ui/Buttons';
+import { UI } from '@/constants/ui';
+
+type SubjectAttendance = {
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  attended: number;
+  total: number;
+  percentage: number;
+  status: 'excellent' | 'good' | 'average' | 'risk';
+  lastMarked: string;
+};
+
+type DashboardData = {
+  overallPercentage: number;
+  totalSubjects: number;
+  subjects: SubjectAttendance[];
+  recentActivity?: {
+    subjectName: string;
+    time: string;
+    status: string;
+  };
+};
 
 export default function Home() {
   const router = useRouter();
+  const profile = useUserProfile();
+  const { location } = useLocation(15000);
 
-  const username = 'Sanchit';
-  const rollNumber = '2210345';
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const username = profile?.name ?? 'Student';
+  const rollNumber = profile?.rollNo ?? '—';
+  const programLabel = profile
+    ? `${profile.program}-${profile.batchStartYear.slice(-2)}`
+    : '';
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      await deleteToken();
+      await deleteUserProfile();
       router.replace('/login');
     } catch (error) {
-      console.error('Logout failed:',error);
+      console.error('Logout failed:', error);
     }
   };
 
+  // Fetch Dashboard Data (Non-blocking)
+  const fetchDashboard = async () => {
+    setLoading(true);
+    setError(null);
 
-  useEffect(() => {
-    const temp = async () => {
-      const res = await getLocation();
-      console.log(res);
+    try {
+      const token = await getToken(); // Make sure you have getToken imported
+
+      const res = await fetch('https://hist-bars-miniature-assurance.trycloudflare.com/api/v1/users/dashboard', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch dashboard');
+
+      const data: DashboardData = await res.json();
+      setDashboard(data);
+    } catch (err: any) {
+      console.error('Dashboard fetch error:', err);
+      
+      // Fallback to mock data in development
+      if (__DEV__) {
+        console.log('Using mock data in DEV mode');
+        setDashboard(getMockDashboardData());
+      } else {
+        setError('Unable to load dashboard. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
+  };
 
-    temp();
+  // Mock Data for Development
+  const getMockDashboardData = (): DashboardData => ({
+    overallPercentage: 79,
+    totalSubjects: 6,
+    recentActivity: {
+      subjectName: 'Data Structures Lab',
+      time: 'Today • 10:00 AM',
+      status: 'Present',
+    },
+    subjects: [
+      {
+        subjectId: '1',
+        subjectName: 'Data Structures',
+        subjectCode: 'CS201',
+        attended: 23,
+        total: 25,
+        percentage: 92,
+        status: 'excellent',
+        lastMarked: 'Today',
+      },
+      {
+        subjectId: '2',
+        subjectName: 'Operating Systems',
+        subjectCode: 'CS203',
+        attended: 18,
+        total: 24,
+        percentage: 75,
+        status: 'average',
+        lastMarked: 'Yesterday',
+      },
+      {
+        subjectId: '3',
+        subjectName: 'Database Management',
+        subjectCode: 'CS205',
+        attended: 20,
+        total: 26,
+        percentage: 77,
+        status: 'good',
+        lastMarked: '2 days ago',
+      },
+      {
+        subjectId: '4',
+        subjectName: 'Computer Networks',
+        subjectCode: 'CS207',
+        attended: 14,
+        total: 22,
+        percentage: 64,
+        status: 'risk',
+        lastMarked: '1 week ago',
+      },
+    ],
+  });
 
-  },[]);
+  // Fetch on mount
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'excellent': return UI.colors.green600;
+      case 'good': return UI.colors.blue600;
+      case 'average': return '#f59e0b';
+      case 'risk': return '#ef4444';
+      default: return UI.colors.slate500;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'excellent': return 'Excellent';
+      case 'good': return 'Good';
+      case 'average': return 'Average';
+      case 'risk': return 'At Risk';
+      default: return '';
+    }
+  };
+
+  if (loading && !dashboard) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <AppBackground>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={UI.colors.blue600} />
+            <Text style={styles.loadingText}>Loading your attendance...</Text>
+          </View>
+        </AppBackground>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* Gradient Header */}
-      <LinearGradient
-        colors={['#1976D2','#1565C0']}
-        start={{ x: 0,y: 0 }}
-        end={{ x: 1,y: 0 }}
-        style={styles.header}
-      >
-        <View style={styles.headerContent}>
-          <View style={styles.userInfo}>
-            <Text style={styles.welcome}>Welcome back,</Text>
-            <Text style={styles.username}>{username}</Text>
-            <Text style={styles.roll}>Roll No: {rollNumber}</Text>
+      <AppBackground>
+        <View style={styles.page}>
+          {/* Header */}
+          <View style={styles.headerRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.headerTitle}>My Attendance</Text>
+              <Text style={styles.headerSubtitle}>
+                Welcome back, <Text style={styles.headerSubtitleStrong}>{username}</Text>
+              </Text>
+              <Text style={styles.headerMeta}>
+                {programLabel} • Roll No: {rollNumber}
+              </Text>
+            </View>
+
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+              <Ionicons name="log-out-outline" size={22} color={UI.colors.slate700} />
+            </TouchableOpacity>
           </View>
 
-          {/* Logout Icon */}
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-            <Ionicons name="log-out-outline" size={26} color="white" />
-          </TouchableOpacity>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Overall Stats */}
+            <View style={styles.statsRow}>
+              <SurfaceCard style={styles.overallCard}>
+                <Text style={styles.overallPercentage}>
+                  {dashboard?.overallPercentage ?? 0}%
+                </Text>
+                <Text style={styles.overallLabel}>Overall Attendance</Text>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${dashboard?.overallPercentage ?? 0}%` },
+                    ]}
+                  />
+                </View>
+              </SurfaceCard>
+            </View>
+
+            {/* Mark Attendance Button */}
+            <PrimaryButton
+              title="Mark Attendance Now"
+              onPress={() => router.push('/scan')}
+              style={styles.actionButton}
+              icon={<MaterialIcons name="qr-code-scanner" size={20} color="white" />}
+            />
+
+            {/* Subject-wise Attendance */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Subject-wise Attendance</Text>
+
+              {dashboard?.subjects.map((subject) => {
+                const statusColor = getStatusColor(subject.status);
+                return (
+                  <SurfaceCard key={subject.subjectId} style={styles.subjectCard}>
+                    <View style={styles.subjectHeader}>
+                      <View>
+                        <Text style={styles.subjectName}>{subject.subjectName}</Text>
+                        <Text style={styles.subjectCode}>{subject.subjectCode}</Text>
+                      </View>
+
+                      <View style={styles.percentageContainer}>
+                        <Text style={[styles.percentage, { color: statusColor }]}>
+                          {subject.percentage}%
+                        </Text>
+                        <Text style={styles.attendedText}>
+                          {subject.attended}/{subject.total}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.subjectFooter}>
+                      <Text
+                        style={[
+                          styles.statusBadge,
+                          { backgroundColor: `${statusColor}15`, color: statusColor },
+                        ]}
+                      >
+                        {getStatusLabel(subject.status)}
+                      </Text>
+                      <Text style={styles.lastMarked}>Last: {subject.lastMarked}</Text>
+                    </View>
+                  </SurfaceCard>
+                );
+              })}
+            </View>
+
+            {/* Recent Activity */}
+            {dashboard?.recentActivity && (
+              <View style={styles.recentSection}>
+                <Text style={styles.sectionTitle}>Recent Activity</Text>
+                <SurfaceCard style={styles.recentCard}>
+                  <View style={styles.recentIcon}>
+                    <MaterialIcons name="check-circle" size={24} color={UI.colors.green600} />
+                  </View>
+                  <View style={styles.recentInfo}>
+                    <Text style={styles.recentTitle}>{dashboard.recentActivity.subjectName}</Text>
+                    <Text style={styles.recentTime}>{dashboard.recentActivity.time}</Text>
+                  </View>
+                  <Text style={styles.recentStatus}>{dashboard.recentActivity.status}</Text>
+                </SurfaceCard>
+              </View>
+            )}
+
+            {error && <Text style={styles.errorText}>{error}</Text>}
+          </ScrollView>
         </View>
-      </LinearGradient>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Quick Stats (placeholder - ready for real data) */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon,{ backgroundColor: '#E8F5E9' }]}>
-              <MaterialIcons name="people" size={28} color="#4CAF50" />
-            </View>
-            <Text style={styles.statNumber}>142</Text>
-            <Text style={styles.statLabel}>Total Students</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon,{ backgroundColor: '#E3F2FD' }]}>
-              <MaterialIcons name="check-circle" size={28} color="#2196F3" />
-            </View>
-            <Text style={styles.statNumber}>94%</Text>
-            <Text style={styles.statLabel}>Attendance Rate</Text>
-          </View>
-        </View>
-
-        {/* Mark Attendance - Prominent Action Button */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          activeOpacity={0.88}
-          onPress={() => router.push('/scan')}
-        >
-          <MaterialIcons name="qr-code-scanner" size={32} color="white" />
-          <Text style={styles.actionText}>Mark Attendance</Text>
-        </TouchableOpacity>
-
-        {/* Recent Activity / Placeholder */}
-        <View style={styles.recentSection}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-
-          <View style={styles.recentCard}>
-            <View style={styles.recentIcon}>
-              <MaterialIcons name="class" size={24} color="#1976D2" />
-            </View>
-            <View style={styles.recentInfo}>
-              <Text style={styles.recentTitle}>Data Structures Lab</Text>
-              <Text style={styles.recentTime}>Today • 10:00 AM</Text>
-            </View>
-            <Text style={styles.recentStatus}>Present</Text>
-          </View>
-
-          {/* Add more recent items here */}
-        </View>
-      </ScrollView>
+      </AppBackground>
     </SafeAreaView>
   );
 }
 
+// ==================== STYLES ====================
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  header: {
-    paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 60,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-  },
-  headerContent: {
+  safeArea: { flex: 1, backgroundColor: UI.colors.slate50 },
+  page: { flex: 1, paddingHorizontal: UI.spacing.pageX, paddingTop: (StatusBar.currentHeight ?? 0) + 16 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 12, fontSize: 16, color: UI.colors.slate600 },
+
+  headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  userInfo: {
-    flex: 1,
-  },
-  welcome: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: 4,
-  },
-  username: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  roll: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 4,
-  },
+  headerTitle: { fontSize: 26, fontWeight: '700', color: UI.colors.slate900 },
+  headerSubtitle: { marginTop: 4, fontSize: 15, color: UI.colors.slate600 },
+  headerSubtitleStrong: { fontWeight: '600', color: UI.colors.slate700 },
+  headerMeta: { marginTop: 2, fontSize: 13, color: '#9ca3af' },
+
   logoutBtn: {
-    padding: 12,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    padding: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(148,163,184,0.16)',
   },
-  scrollView: {
-    flex: 1,
+
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: 100 },
+
+  statsRow: { marginBottom: 24 },
+  overallCard: { padding: 20, alignItems: 'center' },
+  overallPercentage: { fontSize: 48, fontWeight: '700', color: UI.colors.slate900 },
+  overallLabel: { fontSize: 14, color: UI.colors.slate500, marginVertical: 8 },
+  progressBar: {
+    height: 6,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 999,
+    width: '100%',
+    overflow: 'hidden',
   },
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 100,
+  progressFill: {
+    height: '100%',
+    backgroundColor: UI.colors.blue600,
+    borderRadius: 999,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 32,
-  },
-  statCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    width: '48%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0,height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  statIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+
+  actionButton: { marginBottom: 32 },
+
+  section: { marginBottom: 28 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: UI.colors.slate900,
     marginBottom: 12,
   },
-  statNumber: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#212121',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#757575',
-  },
-  actionButton: {
-    backgroundColor: '#1976D2',
-    borderRadius: 28,
-    paddingVertical: 20,
-    paddingHorizontal: 32,
+
+  subjectCard: { marginBottom: 12, padding: 16 },
+  subjectHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 32,
-    shadowColor: '#1976D2',
-    shadowOffset: { width: 0,height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 15,
-    elevation: 12,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  actionText: {
-    color: 'white',
-    fontSize: 18,
+  subjectName: { fontSize: 16, fontWeight: '600', color: UI.colors.slate900 },
+  subjectCode: { fontSize: 13, color: UI.colors.slate500, marginTop: 2 },
+  percentageContainer: { alignItems: 'flex-end' },
+  percentage: { fontSize: 28, fontWeight: '700' },
+  attendedText: { fontSize: 13, color: UI.colors.slate500 },
+
+  subjectFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    fontSize: 12,
     fontWeight: '600',
-    marginLeft: 12,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#212121',
-    marginBottom: 16,
-  },
-  recentSection: {
-    marginBottom: 24,
-  },
+  lastMarked: { fontSize: 13, color: UI.colors.slate500 },
+
+  recentSection: { marginBottom: 30 },
   recentCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0,height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    padding: 16,
   },
   recentIcon: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
     borderRadius: 12,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#ecfdf5',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
-  recentInfo: {
-    flex: 1,
-  },
-  recentTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#212121',
-    marginBottom: 4,
-  },
-  recentTime: {
-    fontSize: 14,
-    color: '#616161',
-  },
-  recentStatus: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4CAF50',
-  },
+  recentInfo: { flex: 1 },
+  recentTitle: { fontSize: 16, fontWeight: '600', color: UI.colors.slate900 },
+  recentTime: { fontSize: 13, color: UI.colors.slate500, marginTop: 2 },
+  recentStatus: { fontSize: 14, fontWeight: '700', color: UI.colors.green600 },
+
+  errorText: { color: 'red', textAlign: 'center', marginTop: 10 },
 });

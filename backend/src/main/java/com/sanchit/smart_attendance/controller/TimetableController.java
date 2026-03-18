@@ -1,8 +1,11 @@
 package com.sanchit.smart_attendance.controller;
 
 import com.sanchit.smart_attendance.security.principal.AdminPrincipal;
+import com.sanchit.smart_attendance.service.EnvironmentService;
 import com.sanchit.smart_attendance.service.TimetableService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,12 +21,13 @@ import java.util.Map;
 public class TimetableController {
     private final TimetableService timetableService;
 
+    @Autowired
+    EnvironmentService environmentService;
+
     @GetMapping("/all")
     public ResponseEntity<?> getMyClasses(
             @AuthenticationPrincipal AdminPrincipal admin
     ) {
-        System.out.println(">>> HIT getMyClasses controller");
-
         return ResponseEntity.ok(
                 Map.of(
                         "error", "false",
@@ -34,18 +38,19 @@ public class TimetableController {
 
     ;
 
+    @Value("${app.dev.admin-id:0}")
+    private Long devAdminId;
     @GetMapping("/{timetableEntryID}/{sessionId}")
     public ResponseEntity<?> getClassById(
             @PathVariable Long timetableEntryID,
             @PathVariable Long sessionId,
             @AuthenticationPrincipal AdminPrincipal admin
     ) {
-        System.out.println(">>> HIT getClassById controller");
-        System.out.println(admin.getId());
+
         return ResponseEntity.ok(
                 Map.of(
                         "error", "false",
-                        "data", timetableService.getClassById(timetableEntryID, 4l,sessionId) // todo: change later
+                        "data", timetableService.getClassById(timetableEntryID, environmentService.isProduction() ? admin.getAdminId() : devAdminId, sessionId) // todo: change later
                 )
         );
     }

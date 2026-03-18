@@ -3,19 +3,18 @@ package com.sanchit.smart_attendance.service;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-import com.sanchit.smart_attendance.dto.CreateUserRequest;
-import com.sanchit.smart_attendance.dto.UserLoginRequest;
-import com.sanchit.smart_attendance.dto.UserLoginResponse;
+import com.sanchit.smart_attendance.dto.*;
 import com.sanchit.smart_attendance.entity.Batch;
+import com.sanchit.smart_attendance.entity.Program;
 import com.sanchit.smart_attendance.entity.User;
 import com.sanchit.smart_attendance.exception.BadRequestException;
 import com.sanchit.smart_attendance.repository.BatchRepository;
+import com.sanchit.smart_attendance.repository.ProgramRepository;
 import com.sanchit.smart_attendance.repository.UserRepository;
 import com.sanchit.smart_attendance.security.JwtService;
 import com.sanchit.smart_attendance.security.enums.Role;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.jackson.autoconfigure.JacksonProperties;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +24,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +35,36 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final BatchRepository batchRepository;
+    private final ProgramRepository programRepository;
+
+    public DashboardResponse getDashboard(Long userId) {
+        List<Object[]> rows = userRepository.getStudentDashboardRaw(userId);
+
+        if (rows.isEmpty()) {
+            return DashboardResponse.builder()
+                    .overallPercentage(0)
+                    .subjects(List.of())
+                    .build();
+        }
+
+        Integer overallPercentage = (Integer) rows.get(0)[0];
+
+        List<SubjectAttendanceDto> subjects = rows.stream()
+                .map(row -> SubjectAttendanceDto.builder()
+                        .subjectName((String) row[1])
+                        .totalClasses((Integer) row[2])
+                        .attended((Integer) row[3])
+                        .percentage((Integer) row[4])
+                        .status((String) row[5])
+                        .lastMarked((String) row[6])
+                        .build())
+                .toList();
+
+        return DashboardResponse.builder()
+                .overallPercentage(overallPercentage)
+                .subjects(subjects)
+                .build();
+    }
 
     public UserLoginResponse login(UserLoginRequest request) {
 
@@ -72,9 +101,24 @@ public class UserService {
             int joiningYear = 2000 + Integer.parseInt(rollNo.substring(1, 3));
 
             Batch batch = batchRepository.findByStartYear(joiningYear)
-                    .orElseThrow(() -> new BadRequestException(
-                            "Batch not configured for year " + joiningYear
-                    ));
+                    .orElseGet(() -> {
+
+                        Batch newBatch = new Batch();
+                        newBatch.setStartYear(String.valueOf(joiningYear));
+                        newBatch.setEndYear(String.valueOf(joiningYear + 3)); // MCA = 3 years
+
+                        // 🔥 TEMP: hardcode program
+                        Program program = programRepository.findByProgramName("MCA")
+                                .orElseGet(() -> {
+                                    Program p = new Program();
+                                    p.setProgramName("MCA");
+                                    return programRepository.save(p);
+                                });
+
+                        newBatch.setProgram(program);
+
+                        return batchRepository.save(newBatch);
+                    });
 
             User newUser = new User();
             newUser.setName(name);
@@ -82,7 +126,6 @@ public class UserService {
             newUser.setRollNo(rollNo);
             newUser.setProfilePictureUrl(profilePicture);
             newUser.setBatch(batch);
-            newUser.setPasswordHash(""); // todo: temporary
             newUser.setIsActive(true);
             newUser.setCreatedAt(LocalDateTime.now());
 
@@ -139,7 +182,16 @@ public class UserService {
                 user.getDeviceIdHash() // device-bound JWT
         );
 
-        return new UserLoginResponse(token, "USER");
+        return new UserLoginResponse(
+                token,
+                "USER",
+                user.getName(),
+                user.getEmail(),
+                user.getRollNo(),
+                user.getBatch().getStartYear(),
+                "MCA",
+                user.getProfilePictureUrl()
+        );
     }
 
 
@@ -179,9 +231,6 @@ public class UserService {
                 .email(req.email())
                 .batch(batch)
                 .isActive(true)
-                .passwordHash(
-                        passwordEncoder.encode(req.password())
-                )
                 .createdAt(LocalDateTime.now())
                 .build();
 

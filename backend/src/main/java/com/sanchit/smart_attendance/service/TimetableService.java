@@ -9,6 +9,8 @@ import com.sanchit.smart_attendance.exception.NotFoundException;
 import com.sanchit.smart_attendance.repository.*;
 import com.sanchit.smart_attendance.repository.projection.TeacherClassTile;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -27,6 +29,8 @@ public class TimetableService {
     private final AdminRepository adminRepository;
     private final SemesterRepository semesterRepository;
     private final TimetableEntryRepository timetableEntryRepository;
+    @Autowired
+    EnvironmentService environmentService;
 
     private DayOfWeekEnum toDbDay(java.time.DayOfWeek javaDay) {
         return switch (javaDay) {
@@ -42,15 +46,20 @@ public class TimetableService {
         };
     }
 
-    public Map<String, Object> getMyClasses(Long adminId) {
+    @Value("${app.dev.admin-id:0}")
+    private Long devAdminId;
 
-        // Hardcoded for testing
-        LocalDate today = LocalDate.of(2026, 2, 5); // Thursday
-        String day = "THU"; // or convert from LocalDate
-        System.out.println("Reached jii" + Math.random());
+    public Map<String, Object> getMyClasses(Long adminId) {
+        LocalDate today =
+                environmentService.isDevelopment()
+                ? LocalDate.of(2026, 2, 5):
+                LocalDate.now();
+
+        String day = today.getDayOfWeek().name().substring(0, 3);
+
         List<TeacherClassTile> rows =
                 timetableEntryRepository
-                        .findTeacherClassesForDay(4L, day); // todo: change 4 to adminID;
+                        .findTeacherClassesForDay(environmentService.isDevelopment() ? devAdminId : adminId, day);
 
         List<Map<String, Object>> tiles = rows.stream().map(r -> {
             Map<String, Object> m = new HashMap<>();

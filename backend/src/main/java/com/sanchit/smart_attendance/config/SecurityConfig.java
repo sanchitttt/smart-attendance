@@ -27,10 +27,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // todo: remove
                         .requestMatchers(
                                 "/api/v1/admin/login",
-                                "/api/v1/users/login",
-                                "/api/v1/admin/create",
-                                "/api/v1/users/create"
-//                                "/api/v1/sessions/start"
+                                "/api/v1/users/login"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

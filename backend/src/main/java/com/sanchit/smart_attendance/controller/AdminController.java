@@ -1,6 +1,7 @@
 package com.sanchit.smart_attendance.controller;
 
 import com.sanchit.smart_attendance.dto.AdminLoginRequest;
+import com.sanchit.smart_attendance.dto.AdminLoginResponse;
 import com.sanchit.smart_attendance.dto.CreateAdminRequest;
 import com.sanchit.smart_attendance.dto.UserLoginResponse;
 import com.sanchit.smart_attendance.entity.Admin;
@@ -40,16 +41,15 @@ public class AdminController {
     public ResponseEntity<?> test() {
         return ResponseEntity.ok(Map.of("error", false, "message", "Test route working"));
     }
-//    @CrossOrigin(origins = "http://localhost:3000")
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AdminLoginRequest request,
                                    HttpServletResponse response) {
-        UserLoginResponse res = adminService.login(request);
+        AdminLoginResponse res = adminService.login(request);
 
         ResponseCookie cookie = ResponseCookie.from("access_token", res.token())
                 .httpOnly(true)
                 .secure(true)    // Required if SameSite is None
-//                .domain("labs-flyer-among-consider.trycloudflare.com")
                 .path("/")
                 .maxAge(Duration.ofMinutes(15))
                 .sameSite("None") // Explicitly allow cross-port/cross-site fetch
@@ -68,7 +68,7 @@ public class AdminController {
                 .httpOnly(true)
                 .secure(true)     // true in prod (HTTPS)
                 .path("/")
-                .maxAge(0)         // 🔥 expires immediately
+                .maxAge(0)         //expires immediately
                 .sameSite("None")
                 .build();
 

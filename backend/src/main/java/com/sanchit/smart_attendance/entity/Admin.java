@@ -29,9 +29,6 @@ public class Admin {
     private Boolean isLocked = false;
 
     @Column(nullable = false)
-    private String passwordHash;
-
-    @Column(nullable = false)
     private String pinHash;
 
     @Column(name = "profile_picture_url")
