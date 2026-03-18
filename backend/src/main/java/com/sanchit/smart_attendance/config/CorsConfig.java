@@ -22,7 +22,7 @@ public class CorsConfig {
                 "http://192.168.0.102:3000",     // add this
                 "https://192.168.0.102:3000"     // add this if frontend uses HTTPS
                 ,"https://localhost:3000"
-                ,"https://hearings-asian-stations-seriously.trycloudflare.com"
+                ,"https://attendance-nitkkr.xyz"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
