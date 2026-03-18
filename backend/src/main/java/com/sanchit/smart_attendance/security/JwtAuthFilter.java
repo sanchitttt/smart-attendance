@@ -23,6 +23,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -105,8 +106,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             SecurityContextHolder.getContext().setAuthentication(auth);
         } else {
-            sendErrorResponse(response, "Invalid or expired token");
-            return;
+            if (!Objects.equals(request.getRequestURI(), "/api/v1/admin/login") && !Objects.equals(request.getRequestURI(), "/api/v1/users/login")) {
+                sendErrorResponse(response, "Invalid or expired token");
+                return;
+            }
         }
         filterChain.doFilter(request, response);
     }
