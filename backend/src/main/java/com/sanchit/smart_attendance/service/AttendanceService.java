@@ -3,6 +3,7 @@ package com.sanchit.smart_attendance.service;
 import com.sanchit.smart_attendance.dto.AttendanceScanRequest;
 import com.sanchit.smart_attendance.dto.FaceVerificationRequest;
 import com.sanchit.smart_attendance.dto.LiveStudentsResponse;
+import com.sanchit.smart_attendance.dto.SubjectHistoryDto;
 import com.sanchit.smart_attendance.entity.FaceRecognitionQueue;
 import com.sanchit.smart_attendance.entity.Session;
 import com.sanchit.smart_attendance.entity.User;
@@ -217,6 +218,10 @@ public class AttendanceService {
                         a.getUser().getRollNo()
                 ))
                 .toList();
+    }
+
+    public List<SubjectHistoryDto> getSubjectHistory(Long studentId, String subjectName) {
+        return attendanceRepository.getSubjectHistoryByName(studentId, subjectName);
     }
 }
 

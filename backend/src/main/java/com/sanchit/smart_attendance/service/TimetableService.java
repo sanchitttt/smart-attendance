@@ -52,7 +52,7 @@ public class TimetableService {
     public Map<String, Object> getMyClasses(Long adminId) {
         LocalDate today =
                 environmentService.isDevelopment()
-                ? LocalDate.of(2026, 2, 5):
+                ? LocalDate.of(2026, 3, 9):
                 LocalDate.now();
 
         String day = today.getDayOfWeek().name().substring(0, 3);

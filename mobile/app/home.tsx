@@ -27,6 +27,9 @@ import OverallAttendanceCard from '@/components/home/OverallAttendanceCard';
 import SubjectPerformanceChart from '@/components/home/SubjectPerformanceChart';
 import SubjectAttendanceCard from '@/components/home/SubjectAttendanceCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SubjectHistoryModal from '@/components/home/SubjectHistoryModel';
+import API_CONFIG from '@/constants/api-config';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 type SubjectAttendance = {
   subjectName: string;
@@ -46,6 +49,7 @@ export default function Home() {
   const profile = useUserProfile();
 
   const [subjects,setSubjects] = useState<SubjectAttendance[]>([]);
+  const [selectedSubject,setSelectedSubject] = useState<SubjectAttendance | null>(null);
   const [overallPercentage,setOverallPercentage] = useState<number>(0);
   const [totalSubjects,setTotalSubjects] = useState<number>(0);
   const [loading,setLoading] = useState(true);
@@ -59,6 +63,7 @@ export default function Home() {
 
   const handleLogout = async () => {
     try {
+      await GoogleSignin.signOut();
       await signOut(auth);
       await deleteToken();
       await deleteUserProfile();
@@ -76,7 +81,7 @@ export default function Home() {
       const token = await getToken();
       if (!token) throw new Error('No token found');
 
-      const res = await fetch('https://hearings-asian-stations-seriously.trycloudflare.com/api/v1/users/dashboard',{
+      const res = await fetch(API_CONFIG.DASHBOARD,{
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -184,11 +189,13 @@ export default function Home() {
               <Text style={styles.sectionTitle}>Subject-wise Attendance ({totalSubjects})</Text>
 
               {subjects.map((subject,index) => (
-                <SubjectAttendanceCard
+                <TouchableOpacity
                   key={index}
-                  subject={subject}
-                  index={index}
-                />
+                  onPress={() => setSelectedSubject(subject)}
+                  activeOpacity={0.85}
+                >
+                  <SubjectAttendanceCard subject={subject} index={index} />
+                </TouchableOpacity>
               ))}
             </View>
 
@@ -196,6 +203,12 @@ export default function Home() {
           </ScrollView>
         </View>
       </AppBackground>
+      {/* Modal */}
+      <SubjectHistoryModal
+        visible={!!selectedSubject}
+        subject={selectedSubject}
+        onClose={() => setSelectedSubject(null)}
+      />
     </SafeAreaView>
   );
 }

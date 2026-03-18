@@ -39,11 +39,15 @@ export default function LiveAttendance({ sessionId,className,active }: Props) {
                     }
                 );
 
-                const json = await res.json();
-                if (!json.error) {
-                    setStudents(json.data);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (!json.error) {
+                        setStudents(json.data);
+                    }
                 }
-
+                else {
+                    toast.error("Something went wrong while fetching students!");
+                }
             } catch (err) {
                 toast.error("Something went wrong!");
                 console.error("Polling error:",err);

@@ -1,5 +1,6 @@
 package com.sanchit.smart_attendance.config;
 
+import com.sanchit.smart_attendance.security.CustomAccessDeniedHandler;
 import com.sanchit.smart_attendance.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +14,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter)  {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 

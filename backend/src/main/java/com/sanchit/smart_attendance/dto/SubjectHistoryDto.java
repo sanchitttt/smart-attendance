@@ -1,17 +1,19 @@
 package com.sanchit.smart_attendance.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DashboardResponse {
-    private List<SubjectAttendanceDto> subjects;
+public class SubjectHistoryDto {
+
+    private LocalDate date;
+    private String status;        // "Present" or "Absent"
+    private String subjectName;
 }

@@ -36,6 +36,7 @@ export default function SubjectPerformanceChart({ subjects }: Props) {
                     subject.status === 'average' ? '#eab308' : '#ef4444',
     }));
 
+    if (!barData || !barData.length) return null;
     return (
         <SurfaceCard style={styles.chartCard}>
             <Text style={styles.sectionTitle}>Subject Performance (%)</Text>

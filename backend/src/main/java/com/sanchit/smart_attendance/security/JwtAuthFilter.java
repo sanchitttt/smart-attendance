@@ -1,5 +1,6 @@
 package com.sanchit.smart_attendance.security;
 
+import com.sanchit.smart_attendance.dto.ApiErrorResponse;
 import com.sanchit.smart_attendance.entity.User;
 import com.sanchit.smart_attendance.repository.UserRepository;
 import com.sanchit.smart_attendance.security.enums.Role;
@@ -11,27 +12,47 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     public JwtAuthFilter(JwtService jwtService,
-                         UserRepository userRepository) {
+                         UserRepository userRepository,
+                         ObjectMapper objectMapper) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
     }
 
+
+    private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Unauthorized")
+                .message(message)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        response.getWriter().write(objectMapper.writeValueAsString(error));
+    }
 
     @Override
     protected void doFilterInternal(
@@ -83,8 +104,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     );
 
             SecurityContextHolder.getContext().setAuthentication(auth);
+        } else {
+            sendErrorResponse(response, "Invalid or expired token");
+            return;
         }
-
         filterChain.doFilter(request, response);
     }
 
@@ -98,10 +121,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             for (Cookie cookie : request.getCookies()) {
                 if ("access_token".equals(cookie.getName())) {
                     return cookie.getValue();
-                };
+                }
+                ;
             }
         }
-
         return null;
     }
 }

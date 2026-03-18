@@ -85,7 +85,7 @@ export default function Scan() {
     setLoading(true);
     const token = await getToken();
     const res = await fetch(
-      "https://hearings-asian-stations-seriously.trycloudflare.com/api/v1/attendance/scan-qr",
+      API_CONFIG.SCAN_QR,
       {
         method: "POST",
         headers: {
@@ -112,14 +112,20 @@ export default function Scan() {
         skipProcessing: true,
       });
       setLoading(true);
+      const token = await getToken();
       const res = await fetch(API_CONFIG.FACE_VERIFY,{
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+
+        },
         body: JSON.stringify({
           sessionId: sessionIdRef.current,
           selfieImageBase64: photo.base64,
         }),
       });
+      console.log(res);
       setLoading(false);
       setStep(3);
     } catch (err) {

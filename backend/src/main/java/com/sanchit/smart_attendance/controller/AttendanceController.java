@@ -1,9 +1,6 @@
 package com.sanchit.smart_attendance.controller;
 
-import com.sanchit.smart_attendance.dto.ApiResponse;
-import com.sanchit.smart_attendance.dto.AttendanceScanRequest;
-import com.sanchit.smart_attendance.dto.FaceVerificationRequest;
-import com.sanchit.smart_attendance.dto.LiveStudentsResponse;
+import com.sanchit.smart_attendance.dto.*;
 import com.sanchit.smart_attendance.security.principal.UserPrincipal;
 import com.sanchit.smart_attendance.service.AttendanceService;
 import jakarta.validation.Valid;
@@ -50,5 +47,19 @@ public class AttendanceController {
                 attendanceService.getLiveStudents(sessionId);
 
         return new ApiResponse<>(false, students);
+    }
+
+    /**
+     * Get full attendance history for a specific subject for the logged-in student
+     */
+    @GetMapping("/subject-history")
+    public ApiResponse<List<SubjectHistoryDto>> getSubjectHistory(
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestParam String subjectName) {
+
+        System.out.println("Reached");
+        List<SubjectHistoryDto> history = attendanceService.getSubjectHistory(user.getId(), subjectName);
+
+        return new ApiResponse<>(false, history);
     }
 }

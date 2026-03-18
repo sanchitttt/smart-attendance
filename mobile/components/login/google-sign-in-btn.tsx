@@ -1,11 +1,12 @@
+import API_CONFIG from "@/constants/api-config";
 import { auth } from "@/services/firebase";
 import { getDeviceInfo } from "@/utils/device";
-import { saveToken, saveUserProfile } from "@/utils/secureStore";
+import { saveToken,saveUserProfile } from "@/utils/secureStore";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { useRouter } from "expo-router";
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
-import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { GoogleAuthProvider,signInWithCredential } from "firebase/auth";
+import React,{ useState } from "react";
+import { StyleSheet,Text,TouchableOpacity,View } from "react-native";
 import { SvgXml } from "react-native-svg";
 
 // Official Google "G" logo SVG (you can also use an image asset)
@@ -29,7 +30,10 @@ export default function GoogleSignInButton() {
 
             await GoogleSignin.hasPlayServices();
 
-            const userInfo = await GoogleSignin.signIn();
+            const userInfo = await GoogleSignin.signIn({
+                //@ts-ignore
+                prompt: 'select_account',     // ← This forces account selection
+            });
 
             // 🔹 Google token
             const googleIdToken = userInfo.data?.idToken;
@@ -56,7 +60,7 @@ export default function GoogleSignInButton() {
 
             console.log(payload);
 
-            const response = await fetch("https://hearings-asian-stations-seriously.trycloudflare.com/api/v1/users/login",{
+            const response = await fetch(API_CONFIG.LOGIN,{
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -89,7 +93,15 @@ export default function GoogleSignInButton() {
             router.replace("/home");
 
         } catch (error) {
-            console.log("Error aya",error);
+            // if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+            //     console.log('User cancelled the login flow');
+            // } else if (error.code === statusCodes.IN_PROGRESS) {
+            //     console.log('Sign in is in progress');
+            // } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+            //     console.log('Play services not available');
+            // } else {
+            //     console.error('Google Sign-In Error:',error);
+            // }
         } finally {
             setLoading(false);
         }

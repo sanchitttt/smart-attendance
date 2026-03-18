@@ -11,16 +11,9 @@ import { Redirect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GoogleSignInButton from '@/components/login/google-sign-in-btn';
 import AppBackground from '@/components/ui/AppBackground';
-import SurfaceCard from '@/components/ui/SurfaceCard';
 import { UI } from '@/constants/ui';
 
 export default function LoginScreen() {
-  const auth = useAuth();
-
-  if (auth.user) {
-    return <Redirect href="/home" />;
-  }
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
@@ -45,14 +38,7 @@ export default function LoginScreen() {
               Secure classroom attendance with QR codes
             </Text>
           </View>
-
-          {/* <SurfaceCard style={styles.card}> */}
-          {/* <Text style={styles.cardTitle}>Sign in</Text> */}
-          {/* <Text style={styles.cardHint}>Use your college Google account to continue</Text> */}
-          {/* <View style={{ height: 18 }} /> */}
           <GoogleSignInButton />
-          {/* </SurfaceCard> */}
-
           <Text style={styles.footer}>Only college email accounts supported</Text>
         </View>
       </AppBackground>

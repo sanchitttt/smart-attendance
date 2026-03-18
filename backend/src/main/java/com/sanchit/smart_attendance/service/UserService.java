@@ -42,26 +42,35 @@ public class UserService {
 
         if (rows.isEmpty()) {
             return DashboardResponse.builder()
-                    .overallPercentage(0)
                     .subjects(List.of())
                     .build();
         }
 
-        Integer overallPercentage = (Integer) rows.get(0)[0];
+        // Calculate overall percentage
+        long totalSum = rows.stream()
+                .mapToLong(row -> ((Number) row[1]).longValue())   // Safe conversion
+                .sum();
 
+        long attendedSum = rows.stream()
+                .mapToLong(row -> ((Number) row[2]).longValue())   // Safe conversion
+                .sum();
+
+        int overallPercentage = (totalSum == 0) ? 0 :
+                (int) Math.round((attendedSum * 100.0) / totalSum);
+
+        // Map to DTOs
         List<SubjectAttendanceDto> subjects = rows.stream()
                 .map(row -> SubjectAttendanceDto.builder()
-                        .subjectName((String) row[1])
-                        .totalClasses((Integer) row[2])
-                        .attended((Integer) row[3])
-                        .percentage((Integer) row[4])
-                        .status((String) row[5])
-                        .lastMarked((String) row[6])
+                        .subjectName((String) row[0])
+                        .totalClasses(((Number) row[1]).intValue())     // Safe cast
+                        .attended(((Number) row[2]).intValue())         // Safe cast
+                        .percentage(((Number) row[3]).intValue())       // Safe cast
+                        .status((String) row[4])
+                        .lastMarked((String) row[5])
                         .build())
                 .toList();
 
         return DashboardResponse.builder()
-                .overallPercentage(overallPercentage)
                 .subjects(subjects)
                 .build();
     }

@@ -7,6 +7,7 @@ export const UI = {
     slate500: "#475569",
     slate600: "#475569",
     slate700: "#334155",
+    slate800: "#334155",
     slate900: "#0f172a",
     white: "#ffffff",
     indigo600: "#4f46e5",
