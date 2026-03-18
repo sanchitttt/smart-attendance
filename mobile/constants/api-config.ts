@@ -1,5 +1,5 @@
 
-const BASE_URL = "https://muscles-burlington-trace-apart.trycloudflare.com/api/v1";
+const BASE_URL = "https://hearings-asian-stations-seriously.trycloudflare.com/api/v1";
 
 const API_CONFIG = {
     LOGIN: `${BASE_URL}/users/login`,

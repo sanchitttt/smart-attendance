@@ -3,6 +3,7 @@ export const UI = {
     slate50: "#f8fafc",
     slate100: "#f1f5f9",
     slate200: "#e2e8f0",
+    slate400: "#475569",
     slate500: "#475569",
     slate600: "#475569",
     slate700: "#334155",
