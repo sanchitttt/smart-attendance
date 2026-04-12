@@ -14,6 +14,9 @@ import { useRouter } from "next/navigation";
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import API_ROUTES from '@/app/config/api.routes';
+import { signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import toast from 'react-hot-toast';
 
 interface ClassInfo {
     timetableID: number;
@@ -58,111 +61,130 @@ export default function ClassesUI({ classes }: Props) {
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
-            {
-                classes.map((cls,i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0,y: 20 }}
-                        animate={{ opacity: 1,y: 0 }}
-                    >
-                        <Card className="group border border-slate-200/70 bg-white/75 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm transition hover:shadow-md hover:-translate-y-[1px]">
-                            <CardContent className="p-5 sm:p-6">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <h3 className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 truncate">
-                                            {cls.subject}
-                                        </h3>
-                                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                            {cls.program} • Semester {cls.semester}
-                                        </p>
+                {
+                    classes.map((cls,i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0,y: 20 }}
+                            animate={{ opacity: 1,y: 0 }}
+                        >
+                            <Card className="group border border-slate-200/70 bg-white/75 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm transition hover:shadow-md hover:-translate-y-[1px]">
+                                <CardContent className="p-5 sm:p-6">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <h3 className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 truncate">
+                                                {cls.subject}
+                                            </h3>
+                                            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                                                {cls.program} • Semester {cls.semester}
+                                            </p>
+                                        </div>
+
+                                        <StatusPill status={cls.status} />
                                     </div>
 
-                                    <StatusPill status={cls.status} />
-                                </div>
+                                    <div className="mt-5 grid grid-cols-2 gap-3">
+                                        <Info icon={<Clock className="h-4 w-4 flex-shrink-0" />} label="Time" value={cls.timeSlot} />
+                                        <Info icon={<Users className="h-4 w-4 flex-shrink-0" />} label="Batch" value={cls.batch} />
+                                        <Info icon={<GraduationCap className="h-4 w-4 flex-shrink-0" />} label="Program" value={cls.program} />
+                                        <Info icon={<BookOpen className="h-4 w-4 flex-shrink-0" />} label="Semester" value={`Semester ${cls.semester}`} />
+                                    </div>
 
-                                <div className="mt-5 grid grid-cols-2 gap-3">
-                                    <Info icon={<Clock className="h-4 w-4 flex-shrink-0" />} label="Time" value={cls.timeSlot} />
-                                    <Info icon={<Users className="h-4 w-4 flex-shrink-0" />} label="Batch" value={cls.batch} />
-                                    <Info icon={<GraduationCap className="h-4 w-4 flex-shrink-0" />} label="Program" value={cls.program} />
-                                    <Info icon={<BookOpen className="h-4 w-4 flex-shrink-0" />} label="Semester" value={`Semester ${cls.semester}`} />
-                                </div>
-
-                                {/* Change back to old */}
-                                {/* {cls.status === 'old' && (
+                                    {/* Change back to old */}
+                                    {/* {cls.status === 'old' && (
                                         <div className="mt-4 pt-4 border-t">
                                             <Button>Take Attendance</Button>
                                         </div>
                                     )} */}
-                                {/* Change back to old */}
-                                {/* todo: Change != to == */}
-                                {cls.status != 'upcoming' && (
-                                    <div className="mt-6 pt-4 border-t border-slate-200/70 flex items-center justify-between gap-3">
-                                        <Button
-                                            className="w-full sm:w-auto disabled:opacity-60 shadow-sm"
-                                            disabled={loading}
-                                            onClick={async () => {
+                                    {/* Change back to old */}
+                                    {/* todo: Change != to == */}
+                                    {cls.status != 'upcoming' && (
+                                        <div className="mt-6 pt-4 border-t border-slate-200/70 flex items-center justify-between gap-3">
+                                            <Button
+                                                className="w-full sm:w-auto disabled:opacity-60 shadow-sm"
+                                                disabled={loading}
+                                                onClick={async () => {
 
-                                                setLoading(true);
+                                                    setLoading(true);
 
-                                                try {
-                                                    const res = await fetch(
-                                                        API_ROUTES.CREATE_SESSION,
-                                                        {
-                                                            method: "POST",
-                                                            credentials: "include",
-                                                            headers: {
-                                                                "Content-Type": "application/json",
-                                                            },
-                                                            body: JSON.stringify({
-                                                                timetableEntryId: cls.timetableID
-                                                            })
+                                                    try {
+                                                        const res = await fetch(
+                                                            API_ROUTES.CREATE_SESSION,
+                                                            {
+                                                                method: "POST",
+                                                                credentials: "include",
+                                                                headers: {
+                                                                    "Content-Type": "application/json",
+                                                                },
+                                                                body: JSON.stringify({
+                                                                    timetableEntryId: cls.timetableID
+                                                                })
+                                                            }
+                                                        );
+
+                                                        if (!res.ok) {
+                                                            if (res.status == 401 || res.status == 403) {
+                                                            try {
+                                                                    await signOut(auth);
+                                                                    await fetch(API_ROUTES.LOGOUT,{
+                                                                        method: "POST",
+                                                                        credentials: "include",
+                                                                    });
+                                                                    toast.error("Your session timed out!");
+                                                                    router.replace("/auth/login");
+                                                                } catch (error) {
+                                                                    console.error("Logout error:");
+                                                                    console.log(error);
+                                                                    toast.error("Failed to sign out. Please try again.")
+                                                                } finally {
+                                                                    // setIsLoading(false)
+                                                                }
+                                                            }
                                                         }
-                                                    );
-                                                    
-                                                    console.log(res);
-                                                    const json = await res.json();
+                                                        console.log(res);
+                                                        const json = await res.json();
 
-                                                    if (json.error) {
-                                                        alert("Failed to create session");
+                                                        if (json.error) {
+                                                            alert("Failed to create session");
+                                                            setLoading(false);
+                                                            return;
+                                                        }
+
+                                                        const sessionId = json.data.sessionId;
+
+                                                        router.push(`/classes/${cls.timetableID}?sessionId=${sessionId}`);
+
+                                                    } catch (err) {
+                                                        console.error(err);
                                                         setLoading(false);
-                                                        return;
                                                     }
+                                                }}
+                                            >
+                                                {loading ? (
+                                                    <span className="flex items-center gap-2">
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                        Creating Session...
+                                                    </span>
+                                                ) : (
+                                                    "Take Attendance"
+                                                )}
+                                            </Button>
+                                        </div>
+                                    )}
 
-                                                    const sessionId = json.data.sessionId;
-
-                                                    router.push(`/classes/${cls.timetableID}?sessionId=${sessionId}`);
-
-                                                } catch (err) {
-                                                    console.error(err);
-                                                    setLoading(false);
-                                                }
-                                            }}
-                                        >
-                                            {loading ? (
-                                                <span className="flex items-center gap-2">
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                    Creating Session...
-                                                </span>
-                                            ) : (
-                                                "Take Attendance"
-                                            )}
-                                        </Button>
-                                    </div>
-                                )}
-
-                                {/* Change back to old */}
-                                {cls.status === 'old' && (
-                                    <div className="mt-3">
-                                        <p className="text-xs sm:text-sm text-gray-500">
-                                            This class has ended
-                                        </p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                ))
-            }
+                                    {/* Change back to old */}
+                                    {cls.status === 'old' && (
+                                        <div className="mt-3">
+                                            <p className="text-xs sm:text-sm text-gray-500">
+                                                This class has ended
+                                            </p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    ))
+                }
             </div>
         </div>
 

@@ -7,6 +7,8 @@ import { Card,CardContent } from '@/app/components/ui/card';
 import { Calendar } from 'lucide-react';
 import { LogoutButton } from '@/app/components/login/LogoutBtn';
 import { apiFetch } from "@/app/lib/apiFetch";
+import { signOut } from "firebase/auth";
+import { auth } from "@/app/lib/firebase";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
@@ -23,6 +25,16 @@ export default async function ClassesPage() {
     });
     console.log(res);
 
+    if (!res.ok) {
+        if (res.status == 401 || res.status == 403) {
+            await signOut(auth);
+            await fetch(API_ROUTES.LOGOUT,{
+                method: "POST",
+                credentials: "include",
+            });
+            redirect("/auth/login")
+        }
+    }
 
     console.log('Backend response status:',res.status);
     console.log('Backend response ok:',res.ok);
