@@ -107,7 +107,7 @@ export default function Scan() {
     if (!cameraRef.current) return;
     try {
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.75,
+        quality: 0.70,
         base64: true,
         skipProcessing: true,
       });
