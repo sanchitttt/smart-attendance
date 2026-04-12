@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +43,8 @@ public class AttendanceService {
     private final FaceRecognitionQueueRepository faceQueueRepository;
     private final UserRepository userRepository;
     private final HmacService hmacService;
+    private final FaceQueueService faceQueueService;
+    private final WorkerService workerService;
 
     private static final double CLASS_LAT = 29.944968790278523;
     private static final double CLASS_LON = 76.8159709642969;
@@ -142,23 +146,30 @@ public class AttendanceService {
         Session session = sessionRepository.findById(req.sessionId())
                 .orElseThrow(() -> new BadRequestException("Session not found"));
 
-        faceQueueRepository.save(
-                FaceRecognitionQueue.builder()
-                        .user(user)
-                        .session(session)
-                        .imagePath(
-                                saveSelfie(
-                                        req.selfieImageBase64(),
-                                        user.getRollNo(),
-                                        session.getSessionId()
-                                )
-                        )
-                        .status(FaceQueueStatus.PENDING)
-                        .build()
+//        System.out.println("Saving image...");
+        String imagePath = saveSelfie(
+                req.selfieImageBase64(),
+                user.getRollNo(),
+                session.getSessionId()
         );
+//        System.out.println("Image Saved!");
+
+        // ✅ Create job ONCE
+        Long jobId = faceQueueService.createJob(userId, session.getSessionId(), imagePath);
+//        System.out.println("Job Created!");
+
+        // ✅ trigger AFTER commit
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                workerService.processAsync(jobId);
+            }
+        });
+        System.out.println("Request Complete");
 
         return Map.of(
-                "status", "FACE_VERIFICATION_QUEUED"
+                "status", "FACE_VERIFICATION_QUEUED",
+                "job_id", jobId
         );
     }
 
@@ -180,6 +191,7 @@ public class AttendanceService {
     private String saveSelfie(String base64, String rollNumber, Long sessionId) {
         try {
 
+            System.out.println("Saving selfie");
             if (base64.contains(",")) {
                 base64 = base64.split(",")[1];
             }
@@ -200,6 +212,8 @@ public class AttendanceService {
 
             Files.write(filePath, imageBytes);
 
+            System.out.println(filePath.toString());
+            System.out.println("Selfie saved");
             return filePath.toString();
 
         } catch (Exception e) {

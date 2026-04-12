@@ -45,6 +45,12 @@ public class AttendanceRecord {
     @Column(name = "face_score", precision = 4, scale = 3)
     private BigDecimal faceScore;
 
+    @Column(name = "liveness_score", precision = 4, scale = 3)
+    private BigDecimal livenessScore;
+
+    @Column(name = "face_scan_successful")
+    private Boolean faceScanSuccessful;
+
     @Column(name = "location_verified")
     private Boolean locationVerified;
 }

@@ -38,7 +38,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                         SELECT\s
                                             te.subject_name,\s
                                             COUNT(*) AS classes_attended,
-                                            MAX(s.started_at) AS last_marked   -- ✅ correct way
+                                            MAX(s.started_at) AS last_marked   
                                         FROM (
                                             SELECT MAX(s.session_id) AS last_session_id
                                             FROM attendance_records ar

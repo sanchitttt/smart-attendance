@@ -37,6 +37,15 @@ public class UserService {
     private final BatchRepository batchRepository;
     private final ProgramRepository programRepository;
 
+    public String getReferencePath(Long userId) {
+
+        return userRepository.findById(userId)
+                .map(User::getFaceEmbeddingPath) // 👈 column in DB
+                .filter(path -> path != null && !path.isBlank())
+                .orElseThrow(() -> new RuntimeException(
+                        "Reference image not found for user: " + userId
+                ));
+    }
     public DashboardResponse getDashboard(Long userId) {
         List<Object[]> rows = userRepository.getStudentDashboardRaw(userId);
 

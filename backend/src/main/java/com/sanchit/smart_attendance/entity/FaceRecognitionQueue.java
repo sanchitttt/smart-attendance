@@ -22,13 +22,13 @@ public class FaceRecognitionQueue {
     @Column(name = "queue_id")
     private Long queueId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+//    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", nullable = false)
-    private Session session;
+//    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "session_id", nullable = false)
+    private Long sessionId;
 
     @Column(name = "image_path", nullable = false)
     private String imagePath;

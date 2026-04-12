@@ -27,6 +27,23 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
             @Param("lng") Double lng
     );
 
+    @Modifying
+    @Query(value = """
+    UPDATE attendance_records
+    SET liveness_score = :livenessScore,
+        face_score = :faceScore,
+        face_scan_successful = :verified
+    WHERE user_id = :userId
+      AND session_id = :sessionId
+""", nativeQuery = true)
+    void updateScores(
+            @Param("userId") Long userId,
+            @Param("sessionId") Long sessionId,
+            @Param("livenessScore") Double livenessScore,
+            @Param("faceScore") Double faceScore,
+            @Param("verified") Boolean verified
+    );
+
     @Query("""
             SELECT a
             FROM AttendanceRecord a

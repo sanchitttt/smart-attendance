@@ -1,6 +1,5 @@
 package com.sanchit.smart_attendance.config;
 
-import com.sanchit.smart_attendance.security.CustomAccessDeniedHandler;
 import com.sanchit.smart_attendance.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +13,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter)  {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
@@ -28,11 +27,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // todo: remove
                         .requestMatchers(
                                 "/api/v1/admin/login",
-                                "/api/v1/users/login"
+                                "/api/v1/users/login",
+                                "/api/v1/test"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // 👇 OUTSIDE authorizeHttpRequests
+//                 👇 OUTSIDE authorizeHttpRequests
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
