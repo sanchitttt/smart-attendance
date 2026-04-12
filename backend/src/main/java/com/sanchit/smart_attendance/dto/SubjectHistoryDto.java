@@ -16,4 +16,5 @@ public class SubjectHistoryDto {
     private LocalDate date;
     private String status;        // "Present" or "Absent"
     private String subjectName;
+    private String faceScanSuccess;
 }

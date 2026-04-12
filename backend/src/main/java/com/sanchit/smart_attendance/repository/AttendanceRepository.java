@@ -60,7 +60,8 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
                     WHEN ar.attendance_id IS NOT NULL THEN 'Present' 
                     ELSE 'Absent' 
                 END AS status,
-                te.subject_name AS subjectName
+                te.subject_name AS subjectName,
+                ar.face_scan_successful as faceScanSuccess
             FROM calendar c
             JOIN timetable_entries te 
                 ON te.day_of_week::text = TO_CHAR(c.calendar_date, 'DY')
