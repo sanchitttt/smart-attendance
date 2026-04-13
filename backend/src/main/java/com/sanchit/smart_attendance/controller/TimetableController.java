@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/timetable/class")
+@RequestMapping("/api/v1/timetable")
 @RequiredArgsConstructor
 public class TimetableController {
     private final TimetableService timetableService;
@@ -24,7 +24,7 @@ public class TimetableController {
     @Autowired
     EnvironmentService environmentService;
 
-    @GetMapping("/all")
+    @GetMapping("/class/all")
     public ResponseEntity<?> getMyClasses(
             @AuthenticationPrincipal AdminPrincipal admin
     ) {
@@ -40,7 +40,7 @@ public class TimetableController {
 
     @Value("${app.dev.admin-id:0}")
     private Long devAdminId;
-    @GetMapping("/{timetableEntryID}/{sessionId}")
+    @GetMapping("/class/{timetableEntryID}/{sessionId}")
     public ResponseEntity<?> getClassById(
             @PathVariable Long timetableEntryID,
             @PathVariable Long sessionId,
@@ -51,6 +51,18 @@ public class TimetableController {
                 Map.of(
                         "error", "false",
                         "data", timetableService.getClassById(timetableEntryID, environmentService.isProduction() ? admin.getAdminId() : devAdminId, sessionId) // todo: change later
+                )
+        );
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<?> getTimetableSummary(
+            @AuthenticationPrincipal AdminPrincipal admin
+    ) {
+        return ResponseEntity.ok(
+                Map.of(
+                        "error", "false",
+                        "data", timetableService.getTimetableSummary(admin.getId())
                 )
         );
     }

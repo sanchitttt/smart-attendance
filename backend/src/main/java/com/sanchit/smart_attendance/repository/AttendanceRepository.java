@@ -56,28 +56,34 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
     @Query(nativeQuery = true, value = """
             SELECT 
                 c.calendar_date AS date,
-                CASE 
-                    WHEN ar.attendance_id IS NOT NULL THEN 'Present' 
-                    ELSE 'Absent' 
+                CASE
+                    WHEN ar.attendance_id IS NOT NULL\s
+                         AND ar.face_scan_successful = FALSE THEN 'Failed'
+    
+                    WHEN ar.attendance_id IS NOT NULL\s
+                         AND ar.face_scan_successful = TRUE THEN 'Present'
+    
+                    ELSE 'Absent'
                 END AS status,
                 te.subject_name AS subjectName,
                 ar.face_scan_successful as faceScanSuccess
             FROM calendar c
-            JOIN timetable_entries te 
+            INNER JOIN timetable_entries te 
                 ON te.day_of_week::text = TO_CHAR(c.calendar_date, 'DY')
-            JOIN sessions s 
+                AND c.day_type = 'CLASS'
+                AND c.calendar_date <= CURRENT_DATE
+                AND te.subject_name = :subjectName
+            INNER JOIN sessions s 
                 ON s.timetable_entry_id = te.timetable_entry_id 
                AND s.session_date = c.calendar_date
             LEFT JOIN attendance_records ar 
                 ON ar.session_id = s.session_id 
                AND ar.user_id = :studentId
-            WHERE te.subject_name = :subjectName
-              AND c.day_type = 'CLASS'
-              AND c.calendar_date <= CURRENT_DATE
             ORDER BY c.calendar_date DESC
             """)
     List<SubjectHistoryDto> getSubjectHistoryByName(
-            @Param("studentId") Long studentId,
-            @Param("subjectName") String subjectName);
+            @Param("subjectName") String subjectName,
+            @Param("studentId") Long studentId
+    );
 }
 

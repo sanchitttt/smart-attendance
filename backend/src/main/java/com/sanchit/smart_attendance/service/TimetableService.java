@@ -8,6 +8,7 @@ import com.sanchit.smart_attendance.exception.BadRequestException;
 import com.sanchit.smart_attendance.exception.NotFoundException;
 import com.sanchit.smart_attendance.repository.*;
 import com.sanchit.smart_attendance.repository.projection.TeacherClassTile;
+import com.sanchit.smart_attendance.repository.projection.TimetableSummaryRow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,9 +17,11 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +55,7 @@ public class TimetableService {
     public Map<String, Object> getMyClasses(Long adminId) {
         LocalDate today =
                 environmentService.isDevelopment()
-                ? LocalDate.of(2026, 3, 9):
+                ? LocalDate.of(2026, 4, 9):
                 LocalDate.now();
 
         String day = today.getDayOfWeek().name().substring(0, 3);
@@ -137,5 +140,84 @@ public class TimetableService {
         }
 
         return cls;
+    }
+
+    public Map<String, Object> getTimetableSummary(Long adminId) {
+        Long effectiveAdminId = environmentService.isDevelopment() ? devAdminId : adminId;
+        List<TimetableSummaryRow> rows = timetableEntryRepository.findTimetableSummaryByAdminId(effectiveAdminId);
+
+        if (rows.isEmpty()) {
+            return Map.of(
+                    "totalClassesConducted", 0,
+                    "averageAttendance", 0,
+                    "atRiskStudents", 0,
+                    "courseSummaries", List.of()
+            );
+        }
+
+        Map<String, CourseAggregate> courseMap = new HashMap<>();
+        for (TimetableSummaryRow row : rows) {
+            if (row.getCourse() == null) continue;
+
+            CourseAggregate aggregate = courseMap.computeIfAbsent(
+                    row.getCourse(),
+                    key -> new CourseAggregate()
+            );
+
+            aggregate.totalClasses = row.getTotalClasses() == null ? 0 : row.getTotalClasses();
+            aggregate.averageAttendance = row.getAverageAttendance() == null ? 0.0 : row.getAverageAttendance();
+            aggregate.atRiskStudents = row.getAtRiskStudents() == null ? 0 : row.getAtRiskStudents();
+
+            if (row.getDate() != null) {
+                Map<String, Object> trendPoint = new HashMap<>();
+                trendPoint.put("date", row.getDate().toString());
+                trendPoint.put("count", row.getCount() == null ? 0 : row.getCount());
+                aggregate.trend.add(trendPoint);
+            }
+        }
+
+        List<Map<String, Object>> courseSummaries = courseMap.entrySet().stream().map(entry -> {
+            CourseAggregate aggregate = entry.getValue();
+            Map<String, Object> item = new HashMap<>();
+            item.put("course", entry.getKey());
+            item.put("totalClasses", aggregate.totalClasses);
+            item.put("averageAttendance", aggregate.averageAttendance);
+            item.put("atRiskStudents", aggregate.atRiskStudents);
+            item.put("trend", aggregate.trend);
+            return item;
+        }).toList();
+
+        int totalClassesConducted = courseMap.values().stream()
+                .map(aggregate -> aggregate.totalClasses)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        double averageAttendance = courseMap.values().stream()
+                .map(aggregate -> aggregate.averageAttendance)
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0);
+
+        int atRiskStudents = courseMap.values().stream()
+                .map(aggregate -> aggregate.atRiskStudents)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        return Map.of(
+                "totalClassesConducted", totalClassesConducted,
+                "averageAttendance", Math.round(averageAttendance * 100.0) / 100.0,
+                "atRiskStudents", atRiskStudents,
+                "courseSummaries", courseSummaries
+        );
+    }
+
+    private static class CourseAggregate {
+        Integer totalClasses = 0;
+        Double averageAttendance = 0.0;
+        Integer atRiskStudents = 0;
+        List<Map<String, Object>> trend = new ArrayList<>();
     }
 }

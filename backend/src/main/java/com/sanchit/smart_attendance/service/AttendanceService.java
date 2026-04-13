@@ -235,7 +235,7 @@ public class AttendanceService {
     }
 
     public List<SubjectHistoryDto> getSubjectHistory(Long studentId, String subjectName) {
-        return attendanceRepository.getSubjectHistoryByName(studentId, subjectName);
+        return attendanceRepository.getSubjectHistoryByName(subjectName, studentId);
     }
 }
 

@@ -59,11 +59,11 @@ export default function RootLayout({
       <body className={`${poppins.variable} antialiased`}>
         {children}
         <Toaster />
-        <footer className="absolute bottom-[5px] w-full py-4 text-center text-gray-400 bg-transparent">
+        <footer className="fixed bottom-0 left-0 w-full py-4 text-center text-gray-400 bg-transparent">
           <p>
             Made with ❤️ by{' '}
             <a
-              href="https://sanchittewari.vercel.app" // replace with your website
+              href="https://sanchittewari.vercel.app"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 hover:underline"

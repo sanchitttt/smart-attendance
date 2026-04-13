@@ -5,12 +5,9 @@ import API_ROUTES from '@/app/config/api.routes';
 import Logout from '@/app/components/ui/logout';
 import { Card,CardContent } from '@/app/components/ui/card';
 import { Calendar } from 'lucide-react';
-import { LogoutButton } from '@/app/components/login/LogoutBtn';
 import { apiFetch } from "@/app/lib/apiFetch";
 import { signOut } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
 export const metadata: Metadata = {
     title: "My Classes",
@@ -40,6 +37,24 @@ export default async function ClassesPage() {
     console.log('Backend response ok:',res.ok);
 
     const data = await res.json();
+    const summaryRes = await apiFetch(API_ROUTES.TIMETABLE_SUMMARY,{
+        method: "GET",
+        cache: "no-store",
+    });
+
+    if (!summaryRes.ok) {
+        if (summaryRes.status == 401 || summaryRes.status == 403) {
+            await signOut(auth);
+            await fetch(API_ROUTES.LOGOUT,{
+                method: "POST",
+                credentials: "include",
+            });
+            redirect("/auth/login")
+        }
+    }
+
+    const summaryJson = summaryRes.ok ? await summaryRes.json() : null;
+    const summaryData = summaryJson?.data ?? null;
 
     const classes = data?.data?.classes ?? [];
     const today = new Date();
@@ -107,7 +122,7 @@ export default async function ClassesPage() {
                     </CardContent>
                 </Card>
 
-                <ClassesUI classes={classes} />
+                <ClassesUI classes={classes} summaryData={summaryData} />
             </div>
         </div>
     );

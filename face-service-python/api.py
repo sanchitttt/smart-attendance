@@ -79,9 +79,9 @@ def verify_face(req: VerifyRequest):
         logger.info(f"[{request_id}] Verification result: verified={verified}, similarity={result.get('similarity')}")
 
         # Cleanup
-        # if os.path.exists(temp_path):
-        #     os.remove(temp_path)
-        #     logger.debug(f"[{request_id}] Cleaned up {temp_path}")
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+            logger.debug(f"[{request_id}] Cleaned up {temp_path}")
 
         return {
             "success": verified,

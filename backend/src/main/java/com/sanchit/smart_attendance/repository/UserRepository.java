@@ -49,6 +49,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                         ) a
                                         INNER JOIN sessions s\s
                                             ON s.session_id = a.last_session_id
+                                        inner join attendance_records ar on ar.session_id = s.session_id and ar.user_id = :studentId and ar.face_scan_successful = true                                            
                                         INNER JOIN timetable_entries te\s
                                             ON te.timetable_entry_id = s.timetable_entry_id
                                         GROUP BY te.subject_name

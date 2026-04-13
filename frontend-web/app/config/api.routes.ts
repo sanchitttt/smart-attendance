@@ -11,6 +11,7 @@ const API_ROUTES = {
 
     // Timetable / classes
     MY_CLASSES: v1("/timetable/class/all"),
+    TIMETABLE_SUMMARY: v1("/timetable/summary"),
     CLASS_SESSION_DETAILS: (timetableId: string | number,sessionId: string | number) =>
         v1(`/timetable/class/${timetableId}/${sessionId}`),
 
