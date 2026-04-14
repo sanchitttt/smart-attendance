@@ -353,111 +353,116 @@ export default function ClassesUI({ classes,summaryData }: Props) {
                     </div>
 
                     <Card className="border border-slate-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
-                <CardContent className="p-5 sm:p-6 space-y-5">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm font-semibold text-gray-900">
-                                Teaching trend by course
-                            </p>
-                            <p className="text-xs sm:text-sm text-gray-500">
-                                Distinct class dates on X-axis with student attendance count on Y-axis.
-                            </p>
-                        </div>
-                        <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100">
-                            <TrendingUp className="h-3.5 w-3.5" />
-                            <span>{series.length} active courses</span>
-                        </div>
-                    </div>
-
-                    <div className="h-[320px] w-full rounded-xl border border-slate-200/60 bg-white/70 px-2 py-2 overflow-x-auto">
-                        <div className="min-w-[600px] h-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart
-                                    data={chartData}
-                                    margin={{ top: 12,right: 20,left: 2,bottom: 10 }}
-                                >
-                                    <CartesianGrid strokeDasharray="4 6" stroke="rgba(148, 163, 184, 0.28)" />
-                                    <XAxis
-                                        dataKey="dateLabel"
-                                        tick={{ fill: "#64748b",fontSize: 11 }}
-                                        axisLine={{ stroke: "rgba(100, 116, 139, 0.35)" }}
-                                        tickLine={false}
-                                    />
-                                    <YAxis
-                                        allowDecimals={false}
-                                        domain={[0,Math.max(maxY,1)]}
-                                        tick={{ fill: "#64748b",fontSize: 11 }}
-                                        axisLine={{ stroke: "rgba(100, 116, 139, 0.35)" }}
-                                        tickLine={false}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{
-                                            borderRadius: 10,
-                                            border: "1px solid rgba(148,163,184,0.35)",
-                                            boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
-                                            backgroundColor: "rgba(255,255,255,0.96)",
-                                        }}
-                                        labelStyle={{ color: "#334155",fontWeight: 600 }}
-                                        formatter={(value,name) => [`${Number(value ?? 0)} students attended`,String(name)]}
-                                        labelFormatter={(label,entries) => {
-                                            const rawDate = entries?.[0]?.payload?.date as string | undefined;
-                                            if (!rawDate) return label;
-                                            const parsed = new Date(rawDate);
-                                            return Number.isNaN(parsed.getTime())
-                                                ? rawDate
-                                                : parsed.toLocaleDateString("en-IN",{ day: "numeric",month: "short",year: "numeric" });
-                                        }}
-                                    />
-                                    {series.map((line) => (
-                                        <Line
-                                            key={line.course}
-                                            type="monotone"
-                                            dataKey={line.course}
-                                            stroke={line.color}
-                                            strokeWidth={2.6}
-                                            dot={{ r: 3.5,stroke: "#fff",strokeWidth: 1.5 }}
-                                            activeDot={{ r: 5 }}
-                                        />
-                                    ))}
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {series.map((line) => {
-                            const width = `${Math.max((line.total / Math.max(...series.map((it) => it.total),1)) * 100,8)}%`;
-                            return (
-                                <div
-                                    key={`${line.course}-total`}
-                                    className="rounded-xl border border-slate-200/70 bg-white/70 px-3 py-3"
-                                >
-                                    <div className="flex items-center justify-between gap-2">
-                                        <p className="text-sm font-medium text-gray-900 truncate">{line.course}</p>
-                                        <span className="text-xs text-gray-500">{line.total} occurred</span>
-                                    </div>
-                                    <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
-                                        <div
-                                            className="h-full rounded-full"
-                                            style={{ width,backgroundColor: line.color }}
-                                        />
-                                    </div>
+                        <CardContent className="p-5 sm:p-6 space-y-5">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-sm font-semibold text-gray-900">
+                                        Teaching trend by course
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-gray-500">
+                                        Distinct class dates on X-axis with student attendance count on Y-axis.
+                                    </p>
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    <div className="flex flex-wrap justify-between items-center gap-3">
-                        {series.map((line) => (
-                            <div key={`${line.course}-legend`} className="inline-flex items-center gap-2 text-xs text-gray-600">
-                                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: line.color }} />
-                                <span className="truncate max-w-[180px]">{line.course}</span>
+                                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100">
+                                    <TrendingUp className="h-3.5 w-3.5" />
+                                    <span>{series.length} active courses</span>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+
+                            <div className="h-[320px] w-full rounded-xl border border-slate-200/60 bg-white/70 px-2 py-2 overflow-x-auto">
+                                <div className="min-w-[600px] h-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart
+                                            data={chartData}
+                                            margin={{ top: 12,right: 20,left: 2,bottom: 10 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="4 6" stroke="rgba(148, 163, 184, 0.28)" />
+                                            <XAxis
+                                                dataKey="dateLabel"
+                                                tick={{ fill: "#64748b",fontSize: 11 }}
+                                                axisLine={{ stroke: "rgba(100, 116, 139, 0.35)" }}
+                                                tickLine={false}
+                                            />
+                                            <YAxis
+                                                allowDecimals={false}
+                                                domain={[0,Math.max(maxY,1)]}
+                                                tick={{ fill: "#64748b",fontSize: 11 }}
+                                                axisLine={{ stroke: "rgba(100, 116, 139, 0.35)" }}
+                                                tickLine={false}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    borderRadius: 10,
+                                                    border: "1px solid rgba(148,163,184,0.35)",
+                                                    boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
+                                                    backgroundColor: "rgba(255,255,255,0.96)",
+                                                }}
+                                                labelStyle={{ color: "#334155",fontWeight: 600 }}
+                                                formatter={(value,name) => [`${Number(value ?? 0)} students attended`,String(name)]}
+                                                labelFormatter={(label,entries) => {
+                                                    const rawDate = entries?.[0]?.payload?.date as string | undefined;
+                                                    if (!rawDate) return label;
+                                                    const parsed = new Date(rawDate);
+                                                    return Number.isNaN(parsed.getTime())
+                                                        ? rawDate
+                                                        : parsed.toLocaleDateString("en-IN",{ day: "numeric",month: "short",year: "numeric" });
+                                                }}
+                                            />
+                                            {series.map((line) => (
+                                                <Line
+                                                    key={line.course}
+                                                    type="monotone"
+                                                    dataKey={line.course}
+                                                    stroke={line.color}
+                                                    strokeWidth={2.6}
+                                                    dot={{
+                                                        r: 3.5,
+                                                        stroke: line.color, 
+                                                        fill: line.color, 
+                                                        strokeWidth: 1.5
+                                                    }}
+                                                    activeDot={{ r: 5 }}
+                                                />
+                                            ))}
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {series.map((line) => {
+                                    const width = `${Math.max((line.total / Math.max(...series.map((it) => it.total),1)) * 100,8)}%`;
+                                    return (
+                                        <div
+                                            key={`${line.course}-total`}
+                                            className="rounded-xl border border-slate-200/70 bg-white/70 px-3 py-3"
+                                        >
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="text-sm font-medium text-gray-900 truncate">{line.course}</p>
+                                                <span className="text-xs text-gray-500">{line.total} occurred</span>
+                                            </div>
+                                            <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full"
+                                                    style={{ width,backgroundColor: line.color }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="flex flex-wrap justify-between items-center gap-3">
+                                {series.map((line) => (
+                                    <div key={`${line.course}-legend`} className="inline-flex items-center gap-2 text-xs text-gray-600">
+                                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: line.color }} />
+                                        <span className="truncate max-w-[180px]">{line.course}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </>
             ) : (
                 <Card className="border border-slate-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
