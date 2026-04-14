@@ -2,6 +2,7 @@ package com.sanchit.smart_attendance.repository;
 
 import com.sanchit.smart_attendance.entity.TimetableEntry;
 import com.sanchit.smart_attendance.enums.DayOfWeekEnum;
+import com.sanchit.smart_attendance.repository.projection.AtRiskStudentRow;
 import com.sanchit.smart_attendance.repository.projection.TeacherClassTile;
 import com.sanchit.smart_attendance.repository.projection.TimetableSummaryRow;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -112,7 +113,11 @@ public interface TimetableEntryRepository
                         s.session_date,
                         te.subject_name AS course,
                         te.semester_id
-                    FROM sessions s
+                    FROM (
+                        SELECT MAX(session_id) as max_id
+                        FROM sessions
+                        GROUP by session_date, timetable_entry_id
+                    ) ss INNER JOIN sessions s ON s.session_id = ss.max_id 
                     INNER JOIN timetable_entries te
                         ON te.timetable_entry_id = s.timetable_entry_id
                     WHERE te.admin_id = :adminId
@@ -166,7 +171,11 @@ public interface TimetableEntryRepository
                         COUNT(ar.attendance_id) FILTER (
                             WHERE ar.face_scan_successful = TRUE
                         ) AS present_sessions
-                    FROM sessions s
+                    FROM (
+                        SELECT MAX(session_id) as max_id
+                        FROM sessions
+                        GROUP by session_date, timetable_entry_id
+                    ) ss INNER JOIN sessions s ON s.session_id = ss.max_id 
                     INNER JOIN timetable_entries te
                         ON te.timetable_entry_id = s.timetable_entry_id
                     INNER JOIN semesters sem
@@ -194,8 +203,10 @@ public interface TimetableEntryRepository
                     SELECT
                         ts.course,
                         ts.session_date AS date,
-                        COUNT(ts.session_id)::int AS count
+                        COALESCE(SUM(sa.present_count), 0)::int AS count
                     FROM teacher_sessions ts
+                    INNER JOIN session_attendance sa
+                        ON sa.session_id = ts.session_id
                     GROUP BY ts.course, ts.session_date
                 )
                 SELECT
@@ -215,6 +226,66 @@ public interface TimetableEntryRepository
             nativeQuery = true
     )
     List<TimetableSummaryRow> findTimetableSummaryByAdminId(
+            @Param("adminId") Long adminId
+    );
+
+    @Query(
+            value = """
+                WITH teacher_sessions AS (
+                    SELECT
+                        te.subject_name AS course,
+                        sem.batch_id AS batch_id,
+                        s.session_id
+                    FROM (
+                        SELECT MAX(session_id) AS max_id
+                        FROM sessions
+                        GROUP BY session_date, timetable_entry_id
+                    ) ss
+                    INNER JOIN sessions s ON s.session_id = ss.max_id
+                    INNER JOIN timetable_entries te
+                        ON te.timetable_entry_id = s.timetable_entry_id
+                    INNER JOIN semesters sem
+                        ON sem.semester_id = te.semester_id
+                    WHERE te.admin_id = :adminId
+                      AND s.session_date <= CURRENT_DATE
+                ),
+                student_course_stats AS (
+                    SELECT
+                        ts.course AS course,
+                        u.user_id AS userId,
+                        u.name AS studentName,
+                        u.roll_no AS rollNo,
+                        COUNT(ts.session_id)::int AS totalClasses,
+                        COUNT(ar.attendance_id) FILTER (
+                            WHERE ar.face_scan_successful = TRUE
+                        )::int AS presentClasses
+                    FROM teacher_sessions ts
+                    INNER JOIN users u
+                        ON u.batch_id = ts.batch_id
+                       AND COALESCE(u.is_active, TRUE) = TRUE
+                    LEFT JOIN attendance_records ar
+                        ON ar.session_id = ts.session_id
+                       AND ar.user_id = u.user_id
+                    GROUP BY ts.course, u.user_id, u.name, u.roll_no
+                )
+                SELECT
+                    scs.course AS course,
+                    scs.studentName AS studentName,
+                    scs.rollNo AS rollNo,
+                    scs.presentClasses AS presentClasses,
+                    scs.totalClasses AS totalClasses,
+                    ROUND(
+                        (scs.presentClasses * 100.0) / NULLIF(scs.totalClasses, 0),
+                        2
+                    ) AS attendancePercentage
+                FROM student_course_stats scs
+                WHERE scs.totalClasses > 0
+                  AND (scs.presentClasses * 100.0 / scs.totalClasses) < 75
+                ORDER BY scs.course ASC, attendancePercentage ASC, scs.studentName ASC
+            """,
+            nativeQuery = true
+    )
+    List<AtRiskStudentRow> findAtRiskStudentsByAdminId(
             @Param("adminId") Long adminId
     );
 }

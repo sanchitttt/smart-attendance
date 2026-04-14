@@ -66,4 +66,16 @@ public class TimetableController {
                 )
         );
     }
+
+    @GetMapping("/summary/at-risk-students")
+    public ResponseEntity<?> getAtRiskStudents(
+            @AuthenticationPrincipal AdminPrincipal admin
+    ) {
+        return ResponseEntity.ok(
+                Map.of(
+                        "error", "false",
+                        "data", timetableService.getAtRiskStudents(admin.getId())
+                )
+        );
+    }
 }

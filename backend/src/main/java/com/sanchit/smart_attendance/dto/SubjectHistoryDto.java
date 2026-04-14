@@ -13,8 +13,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class SubjectHistoryDto {
 
+    private Long attendanceId;
     private LocalDate date;
     private String status;        // "Present" or "Absent"
     private String subjectName;
     private Boolean faceScanSuccess;
+    private String attendanceDisputeStatus;
 }

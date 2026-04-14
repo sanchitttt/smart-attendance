@@ -55,18 +55,26 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
 
     @Query(nativeQuery = true, value = """
             SELECT 
+                ar.attendance_id AS attendanceId,
                 c.calendar_date AS date,
                 CASE
+                    WHEN ar.attendance_id IS NOT NULL\s
+                         AND ar.face_scan_successful = FALSE AND (frq.status = 'PENDING' OR frq.status = 'PROCESSING') THEN 'Processing'
+                         
                     WHEN ar.attendance_id IS NOT NULL\s
                          AND ar.face_scan_successful = FALSE THEN 'Failed'
     
                     WHEN ar.attendance_id IS NOT NULL\s
                          AND ar.face_scan_successful = TRUE THEN 'Present'
+                         
+                    WHEN ar.attendance_id IS NOT NULL\s
+                         AND au.status = 'REJECTED' THEN 'Rejected'
     
                     ELSE 'Absent'
                 END AS status,
                 te.subject_name AS subjectName,
-                ar.face_scan_successful as faceScanSuccess
+                ar.face_scan_successful as faceScanSuccess,
+                au.status as attendanceDisputeStatus
             FROM calendar c
             INNER JOIN timetable_entries te 
                 ON te.day_of_week::text = TO_CHAR(c.calendar_date, 'DY')
@@ -79,6 +87,9 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
             LEFT JOIN attendance_records ar 
                 ON ar.session_id = s.session_id 
                AND ar.user_id = :studentId
+            LEFT OUTER JOIN attendance_disputes au
+                ON au.attendance_id = ar.attendance_id
+            LEFT OUTER JOIN face_recognition_queue frq ON frq.session_id = s.session_id AND frq.user_id = :studentId
             ORDER BY c.calendar_date DESC
             """)
     List<SubjectHistoryDto> getSubjectHistoryByName(

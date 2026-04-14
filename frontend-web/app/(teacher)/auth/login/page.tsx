@@ -1,6 +1,10 @@
 // app/login/page.tsx
 import type { Metadata } from "next";
 import LoginForm from "@/app/components/login/LoginForm";
+import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -8,7 +12,14 @@ export const metadata: Metadata = {
     "Sign in to Smart Attendance to manage classes and run QR-based attendance sessions.",
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token');
+
+  if (token && token.value) {
+    redirect('/classes');
+  }
+
   return (
     <div className="min-h-screen w-full bg-[#fafafa] relative text-gray-900 overflow-hidden flex items-center justify-center px-4 sm:px-6 lg:px-8">
       {/* Diagonal Grid with Light */}

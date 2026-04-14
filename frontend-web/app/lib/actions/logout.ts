@@ -8,6 +8,8 @@ export async function logout() {
   // Clear auth cookie
   const cookieStore = await cookies();
   cookieStore.delete("access_token");
+  cookieStore.delete('session');
+  cookieStore.delete('__session');
 
   // Redirect after logout
   redirect("/login");

@@ -1,6 +1,6 @@
 'use client';
 
-import React,{ useEffect,useState } from 'react';
+import React,{ useCallback,useEffect,useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   StatusBar,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { MaterialIcons,Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -54,6 +55,7 @@ export default function Home() {
   const [totalSubjects,setTotalSubjects] = useState<number>(0);
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState<string | null>(null);
+  const [refreshing,setRefreshing] = useState(false);
 
   const username = profile?.name ?? 'Student';
   const rollNumber = profile?.rollNo ?? '—';
@@ -132,6 +134,19 @@ export default function Home() {
     fetchDashboard();
   },[]);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Replace this with your actual data fetching logic 
+      // e.g., await fetchAttendanceData();
+      await fetchDashboard();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setRefreshing(false);
+    }
+  },[]);
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -172,6 +187,14 @@ export default function Home() {
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                // colors={[UI.colors.primary]} // Android spinner color
+                // tintColor={UI.colors.primary} // iOS spinner color
+              />
+            }
           >
             <OverallAttendanceCard percentage={overallPercentage} />
 

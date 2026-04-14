@@ -12,6 +12,7 @@ const API_ROUTES = {
     // Timetable / classes
     MY_CLASSES: v1("/timetable/class/all"),
     TIMETABLE_SUMMARY: v1("/timetable/summary"),
+    TIMETABLE_AT_RISK_STUDENTS: v1("/timetable/summary/at-risk-students"),
     CLASS_SESSION_DETAILS: (timetableId: string | number,sessionId: string | number) =>
         v1(`/timetable/class/${timetableId}/${sessionId}`),
 
@@ -22,6 +23,11 @@ const API_ROUTES = {
 
     // Attendance
     SESSION_ATTENDANCE: (sessionId: string | number) => v1(`/attendance/session/${sessionId}`),
+    ALL_DISPUTES: v1("/attendance/disputes/all"),
+    DISPUTES_BY_TIMETABLE: (timetableId: string | number) => v1(`/attendance/disputes/timetable/${timetableId}`),
+    REVIEW_DISPUTE: (disputeId: string | number) => v1(`/attendance/disputes/${disputeId}/review`),
+    DISPUTE_IMAGE: (disputeId: string | number,type: "submitted" | "master") =>
+        v1(`/attendance/disputes/${disputeId}/image?type=${type}`),
 };
 
 export default API_ROUTES;

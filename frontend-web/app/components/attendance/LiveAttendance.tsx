@@ -26,15 +26,18 @@ export default function LiveAttendance({ sessionId,className,active }: Props) {
     const [students,setStudents] = useState<Student[]>([]);
 
     useEffect(() => {
-        if (!active) return; // do nothing if not active
+        if (!active) return;
+
+        // Record the time when the polling starts
+        const startTime = Date.now();
+        const TIMEOUT_LIMIT = 35000; // 35 seconds in milliseconds
+
         const fetchAttendance = async () => {
             try {
                 const res = await fetch(
                     API_ROUTES.SESSION_ATTENDANCE(sessionId),
                     {
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         credentials: "include",
                     }
                 );
@@ -44,8 +47,7 @@ export default function LiveAttendance({ sessionId,className,active }: Props) {
                     if (!json.error) {
                         setStudents(json.data);
                     }
-                }
-                else {
+                } else {
                     toast.error("Something went wrong while fetching students!");
                 }
             } catch (err) {
@@ -54,12 +56,23 @@ export default function LiveAttendance({ sessionId,className,active }: Props) {
             }
         };
 
+        // Initial fetch
         fetchAttendance();
 
-        const interval = setInterval(fetchAttendance,3000);
+        // Set up interval
+        const interval = setInterval(() => {
+            const timeElapsed = Date.now() - startTime;
+
+            if (timeElapsed >= TIMEOUT_LIMIT) {
+                clearInterval(interval);
+                console.log("Polling stopped after 35 seconds.");
+                return;
+            }
+
+            fetchAttendance();
+        },3000);
 
         return () => clearInterval(interval);
-
     },[sessionId,active]);
 
     return (

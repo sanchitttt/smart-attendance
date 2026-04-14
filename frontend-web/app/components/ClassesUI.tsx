@@ -326,7 +326,18 @@ export default function ClassesUI({ classes,summaryData }: Props) {
                                 </CardContent>
                             </Card>
 
-                            <Card className="border border-slate-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm sm:col-span-2 xl:col-span-1">
+                            <Card
+                                className="border border-slate-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm sm:col-span-2 xl:col-span-1 cursor-pointer transition hover:shadow-md hover:-translate-y-[1px]"
+                                onClick={() => router.push("/classes/students-at-risk")}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter" || event.key === " ") {
+                                        event.preventDefault();
+                                        router.push("/classes/students-at-risk");
+                                    }
+                                }}
+                            >
                                 <CardContent className="p-5">
                                     <div className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-700 ring-1 ring-amber-100">
                                         <AlertTriangle className="h-4 w-4" />
@@ -349,7 +360,7 @@ export default function ClassesUI({ classes,summaryData }: Props) {
                                 Teaching trend by course
                             </p>
                             <p className="text-xs sm:text-sm text-gray-500">
-                                Distinct class dates on X-axis with one line per course.
+                                Distinct class dates on X-axis with student attendance count on Y-axis.
                             </p>
                         </div>
                         <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100">
@@ -387,7 +398,7 @@ export default function ClassesUI({ classes,summaryData }: Props) {
                                             backgroundColor: "rgba(255,255,255,0.96)",
                                         }}
                                         labelStyle={{ color: "#334155",fontWeight: 600 }}
-                                        formatter={(value,name) => [`${Number(value ?? 0)} attended`,String(name)]}
+                                        formatter={(value,name) => [`${Number(value ?? 0)} students attended`,String(name)]}
                                         labelFormatter={(label,entries) => {
                                             const rawDate = entries?.[0]?.payload?.date as string | undefined;
                                             if (!rawDate) return label;
@@ -424,7 +435,7 @@ export default function ClassesUI({ classes,summaryData }: Props) {
                                 >
                                     <div className="flex items-center justify-between gap-2">
                                         <p className="text-sm font-medium text-gray-900 truncate">{line.course}</p>
-                                        <span className="text-xs text-gray-500">{line.total} attended</span>
+                                        <span className="text-xs text-gray-500">{line.total} occurred</span>
                                     </div>
                                     <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
                                         <div

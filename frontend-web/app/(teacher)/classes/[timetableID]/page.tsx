@@ -110,18 +110,21 @@ async function TakeAttendance({ params,searchParams }: PageProps) {
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden text-gray-900">
-            {/* Clean subtle background (match /classes) */}
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-slate-50" />
-            <div
-                className="absolute inset-0 opacity-[0.35]"
-                style={{
-                    backgroundImage:
-                        "linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px)",
-                    backgroundSize: "48px 48px",
-                    maskImage: "radial-gradient(circle at 50% 0%, black 35%, transparent 75%)",
-                    WebkitMaskImage: "radial-gradient(circle at 50% 0%, black 35%, transparent 75%)",
-                }}
-            />
+            {/* <div className="min-h-screen w-full bg-white relative text-gray-800"> */}
+                {/* Crosshatch Art - Light Pattern */}
+                <div
+                    className="absolute inset-0 z-0 pointer-events-none"
+                    style={{
+                        backgroundImage: `
+        repeating-linear-gradient(22.5deg, transparent, transparent 2px, rgba(75, 85, 99, 0.06) 2px, rgba(75, 85, 99, 0.06) 3px, transparent 3px, transparent 8px),
+        repeating-linear-gradient(67.5deg, transparent, transparent 2px, rgba(107, 114, 128, 0.05) 2px, rgba(107, 114, 128, 0.05) 3px, transparent 3px, transparent 8px),
+        repeating-linear-gradient(112.5deg, transparent, transparent 2px, rgba(55, 65, 81, 0.04) 2px, rgba(55, 65, 81, 0.04) 3px, transparent 3px, transparent 8px),
+        repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 55, 0.03) 2px, rgba(31, 41, 55, 0.03) 3px, transparent 3px, transparent 8px)
+      `,
+                    }}
+                />
+                {/* Your Content/Components */}
+            {/* </div> */}
 
             {/* Page Content */}
             <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">

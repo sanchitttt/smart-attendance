@@ -18,6 +18,11 @@ public interface FaceRecognitionQueueRepository
     List<FaceRecognitionQueue>
     findTop10ByStatusOrderByCreatedAtAsc(FaceQueueStatus status);
 
+    java.util.Optional<FaceRecognitionQueue> findTopByUserIdAndSessionIdOrderByCreatedAtDesc(
+            Long userId,
+            Long sessionId
+    );
+
 
     @Query(value = """
         SELECT * FROM face_recognition_queue

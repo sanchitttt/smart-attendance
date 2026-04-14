@@ -109,8 +109,7 @@ public class SessionService {
                 session.setStatus(SessionStatus.CLOSED);
                 return sessionRepository.save(session);
             }
-        }
-        else{
+        } else {
             session.setStartedAt(LocalDateTime.now());
         }
 
@@ -151,7 +150,7 @@ public class SessionService {
             throw new BadRequestException("Unauthorized");
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = environmentService.isDevelopment() ? LocalDate.of(2026, 4, 9) : LocalDate.now();
 
         Session session = Session.builder()
                 .sessionDate(today)

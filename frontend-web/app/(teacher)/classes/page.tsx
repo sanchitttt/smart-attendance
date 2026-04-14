@@ -4,10 +4,13 @@ import { redirect } from 'next/navigation';
 import API_ROUTES from '@/app/config/api.routes';
 import Logout from '@/app/components/ui/logout';
 import { Card,CardContent } from '@/app/components/ui/card';
-import { Calendar } from 'lucide-react';
+import { AlertTriangle,Calendar } from 'lucide-react';
 import { apiFetch } from "@/app/lib/apiFetch";
 import { signOut } from "firebase/auth";
 import { auth } from "@/app/lib/firebase";
+import Link from "next/link";
+import { Button } from "@/app/components/ui/button";
+import { logout } from "@/app/lib/actions/logout";
 
 export const metadata: Metadata = {
     title: "My Classes",
@@ -20,11 +23,10 @@ export default async function ClassesPage() {
         method: "GET",
         cache: 'no-store',
     });
-    console.log(res);
 
     if (!res.ok) {
         if (res.status == 401 || res.status == 403) {
-            await signOut(auth);
+            logout();
             await fetch(API_ROUTES.LOGOUT,{
                 method: "POST",
                 credentials: "include",
@@ -44,7 +46,7 @@ export default async function ClassesPage() {
 
     if (!summaryRes.ok) {
         if (summaryRes.status == 401 || summaryRes.status == 403) {
-            await signOut(auth);
+            // await signOut(auth);
             await fetch(API_ROUTES.LOGOUT,{
                 method: "POST",
                 credentials: "include",
@@ -61,19 +63,18 @@ export default async function ClassesPage() {
 
     return (
         <div className="min-h-screen w-full relative text-gray-900">
-            {/* Clean subtle background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-slate-50" />
             <div
-                className="absolute inset-0 opacity-[0.35]"
+                className="absolute inset-0 z-0 pointer-events-none"
                 style={{
-                    backgroundImage:
-                        "linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px)",
-                    backgroundSize: "48px 48px",
-                    maskImage: "radial-gradient(circle at 50% 0%, black 35%, transparent 75%)",
-                    WebkitMaskImage: "radial-gradient(circle at 50% 0%, black 35%, transparent 75%)",
+                    backgroundImage: `
+          repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 20px)
+        `,
+                    backgroundSize: "40px 40px",
                 }}
             />
-
+            {/* Your Content/Components */}
+            {/* </div> */}
             <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
                 {/* Header */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -94,9 +95,16 @@ export default async function ClassesPage() {
                             )}
                         </p>
                     </div>
-
-                    <div className="flex items-center justify-start sm:justify-end">
-                        <Logout />
+                    <div className='flex flex-row gap-[10px] items-center justify-center'>
+                        <Button asChild variant="outline">
+                            <Link href="/disputes">
+                                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                                Disputes
+                            </Link>
+                        </Button>
+                        <div className="flex items-center justify-start sm:justify-end">
+                            <Logout />
+                        </div>
                     </div>
                 </div>
 

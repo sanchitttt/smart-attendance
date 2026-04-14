@@ -59,7 +59,7 @@ export default function RootLayout({
       <body className={`${poppins.variable} antialiased`}>
         {children}
         <Toaster />
-        <footer className="fixed bottom-0 left-0 w-full py-4 text-center text-gray-400 bg-transparent">
+        {/* <footer className="fixed bottom-0 left-0 w-full py-4 text-center text-gray-400 bg-transparent">
           <p>
             Made with ❤️ by{' '}
             <a
@@ -71,7 +71,7 @@ export default function RootLayout({
               Sanchit
             </a>
           </p>
-        </footer>
+        </footer> */}
       </body>
     </html>
   );

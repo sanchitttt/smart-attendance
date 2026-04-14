@@ -108,22 +108,25 @@ export default function Scan() {
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.70,
-        base64: true,
         skipProcessing: true,
       });
       setLoading(true);
       const token = await getToken();
+      const formData = new FormData();
+      formData.append("sessionId", `${sessionIdRef.current}`);
+      formData.append("selfieImage",{
+        uri: photo.uri,
+        name: `selfie-${Date.now()}.jpg`,
+        type: "image/jpeg",
+      } as any);
+
       const res = await fetch(API_CONFIG.FACE_VERIFY,{
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
 
         },
-        body: JSON.stringify({
-          sessionId: sessionIdRef.current,
-          selfieImageBase64: photo.base64,
-        }),
+        body: formData,
       });
       console.log(res);
       setLoading(false);

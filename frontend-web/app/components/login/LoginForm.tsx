@@ -12,18 +12,18 @@ import API_ROUTES from '../../config/api.routes';
 
 export default function LoginForm() {
     const [googleLoading,setGoogleLoading] = useState(false);
-    const [checkingAuth,setCheckingAuth] = useState(true);
+    const [checkingAuth,setCheckingAuth] = useState(false);
     const router = useRouter();
 
-    useEffect(() => {
-        const user = auth.currentUser;
+    // useEffect(() => {
+    //     const user = auth.currentUser;
 
-        if (user) {
-            router.replace('/classes');
-        } else {
-            setCheckingAuth(false);
-        }
-    },[]);
+    //     if (user) {
+    //         router.replace('/classes');
+    //     } else {
+    //         setCheckingAuth(false);
+    //     }
+    // },[]);
 
     const handleGoogleLogin = async () => {
         setGoogleLoading(true);

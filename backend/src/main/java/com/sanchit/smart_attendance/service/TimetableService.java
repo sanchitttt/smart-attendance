@@ -9,6 +9,7 @@ import com.sanchit.smart_attendance.exception.NotFoundException;
 import com.sanchit.smart_attendance.repository.*;
 import com.sanchit.smart_attendance.repository.projection.TeacherClassTile;
 import com.sanchit.smart_attendance.repository.projection.TimetableSummaryRow;
+import com.sanchit.smart_attendance.repository.projection.AtRiskStudentRow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -211,6 +212,37 @@ public class TimetableService {
                 "averageAttendance", Math.round(averageAttendance * 100.0) / 100.0,
                 "atRiskStudents", atRiskStudents,
                 "courseSummaries", courseSummaries
+        );
+    }
+
+    public Map<String, Object> getAtRiskStudents(Long adminId) {
+        Long effectiveAdminId = environmentService.isDevelopment() ? devAdminId : adminId;
+        List<AtRiskStudentRow> rows = timetableEntryRepository.findAtRiskStudentsByAdminId(effectiveAdminId);
+
+        Map<String, List<Map<String, Object>>> byCourse = new HashMap<>();
+        for (AtRiskStudentRow row : rows) {
+            if (row.getCourse() == null || row.getCourse().isBlank()) continue;
+            Map<String, Object> student = new HashMap<>();
+            student.put("studentName", row.getStudentName());
+            student.put("rollNo", row.getRollNo());
+            student.put("presentClasses", row.getPresentClasses() == null ? 0 : row.getPresentClasses());
+            student.put("totalClasses", row.getTotalClasses() == null ? 0 : row.getTotalClasses());
+            student.put("attendancePercentage", row.getAttendancePercentage() == null ? 0 : row.getAttendancePercentage());
+            byCourse.computeIfAbsent(row.getCourse(), key -> new ArrayList<>()).add(student);
+        }
+
+        List<Map<String, Object>> courses = byCourse.entrySet().stream()
+                .map(entry -> {
+                    Map<String, Object> course = new HashMap<>();
+                    course.put("course", entry.getKey());
+                    course.put("students", entry.getValue());
+                    return course;
+                })
+                .toList();
+
+        return Map.of(
+                "totalAtRiskStudents", rows.size(),
+                "courses", courses
         );
     }
 

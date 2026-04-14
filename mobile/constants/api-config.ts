@@ -7,6 +7,7 @@ const API_CONFIG = {
     FACE_VERIFY: `${BASE_URL}/attendance/face-scan`,
     SCAN_QR: `${BASE_URL}/attendance/scan-qr`,
     SUBJECT_HISTORY: `${BASE_URL}/attendance/subject-history`,
+    CREATE_DISPUTE: `${BASE_URL}/attendance/disputes`,
 };
 
 export default API_CONFIG;
