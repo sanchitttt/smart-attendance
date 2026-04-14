@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import API_ROUTES from "@/app/config/api.routes";
 import { apiFetch } from "@/app/lib/apiFetch";
 import StudentsAtRiskPanel, { type AtRiskCourseGroup } from "@/app/components/attendance/StudentsAtRiskPanel";
+import CloseRiskModalButton from "@/app/components/attendance/CloseRiskModalButton";
 
 export default async function StudentsAtRiskModalPage() {
     const res = await apiFetch(API_ROUTES.TIMETABLE_AT_RISK_STUDENTS, {
@@ -23,7 +24,7 @@ export default async function StudentsAtRiskModalPage() {
                 <StudentsAtRiskPanel
                     courses={courses}
                     totalAtRiskStudents={totalAtRiskStudents}
-                    asModal
+                    headerAction={<CloseRiskModalButton />}
                 />
             </div>
         </div>

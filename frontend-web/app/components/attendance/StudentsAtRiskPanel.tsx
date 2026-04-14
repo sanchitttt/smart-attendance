@@ -1,10 +1,6 @@
-'use client';
-
 import { BookOpen, Percent, UserRound, AlertCircle } from 'lucide-react';
-import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
+import type { ReactNode } from 'react';
 
 export type AtRiskStudent = {
     studentName: string;
@@ -22,15 +18,11 @@ export type AtRiskCourseGroup = {
 type Props = {
     courses: AtRiskCourseGroup[];
     totalAtRiskStudents: number;
-    asModal?: boolean;
+    headerAction?: ReactNode;
 };
 
-export default function StudentsAtRiskPanel({ courses, totalAtRiskStudents, asModal = false }: Props) {
-    const router = useRouter();
-
-    const sortedCourses = useMemo(() => {
-        return [...courses].sort((a, b) => b.students.length - a.students.length || a.course.localeCompare(b.course));
-    }, [courses]);
+export default function StudentsAtRiskPanel({ courses, totalAtRiskStudents, headerAction }: Props) {
+    const sortedCourses = [...courses].sort((a, b) => b.students.length - a.students.length || a.course.localeCompare(b.course));
 
     return (
         <div className="space-y-4">
@@ -49,16 +41,7 @@ export default function StudentsAtRiskPanel({ courses, totalAtRiskStudents, asMo
                     </p>
                 </div>
                 
-                {asModal && (
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => router.back()} 
-                        className="h-8 text-xs font-medium border-slate-200 hover:bg-slate-50"
-                    >
-                        Close
-                    </Button>
-                )}
+                {headerAction}
             </div>
 
             {/* CONTENT SECTION */}

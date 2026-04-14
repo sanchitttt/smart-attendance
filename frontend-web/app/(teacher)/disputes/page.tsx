@@ -12,7 +12,20 @@ export const metadata: Metadata = {
     description: "Review and resolve failed face-scan attendance disputes.",
 };
 
-export default async function DisputesPage() {
+type DisputesPageProps = {
+    searchParams: Promise<{
+        status?: string;
+        q?: string;
+    }>;
+};
+
+export default async function DisputesPage({ searchParams }: DisputesPageProps) {
+    const params = await searchParams;
+    const statusParam = typeof params.status === "string" ? params.status.toUpperCase() : "PENDING";
+    const statusFilter: DisputeItem["status"] =
+        statusParam === "APPROVED" || statusParam === "REJECTED" ? statusParam : "PENDING";
+    const searchText = typeof params.q === "string" ? params.q.trim() : "";
+
     const res = await apiFetch(API_ROUTES.ALL_DISPUTES,{
         method: "GET",
         cache: "no-store",
@@ -25,7 +38,12 @@ export default async function DisputesPage() {
     }
 
     const json = res.ok ? await res.json() : null;
-    const items: DisputeItem[] = Array.isArray(json?.data) ? json.data : [];
+    const allItems: DisputeItem[] = Array.isArray(json?.data) ? json.data : [];
+    const items = allItems.filter((item) => {
+        const matchesStatus = item.status === statusFilter;
+        const matchesName = !searchText || item.studentName.toLowerCase().includes(searchText.toLowerCase());
+        return matchesStatus && matchesName;
+    });
 
     return (
         <div className="min-h-screen w-full relative text-gray-900">
@@ -68,7 +86,11 @@ export default async function DisputesPage() {
                     Pending and reviewed disputes are listed here
                 </div>
 
-                <DisputeRequestsPanel items={items} />
+                <DisputeRequestsPanel
+                    items={items}
+                    statusFilter={statusFilter}
+                    searchText={searchText}
+                />
             </div>
         </div>
     );

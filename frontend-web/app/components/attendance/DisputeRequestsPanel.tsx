@@ -1,12 +1,7 @@
-'use client';
-
-import { useMemo,useState } from 'react';
 import { Card,CardContent,CardHeader,CardTitle,CardDescription } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
-import API_ROUTES,{ API_BASE_URL } from '@/app/config/api.routes';
-import { AlertTriangle,CheckCircle2,Search,XCircle } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+import { AlertTriangle, Search } from 'lucide-react';
+import { API_BASE_URL } from '@/app/config/api.routes';
+import DisputeReviewActions from '@/app/components/attendance/DisputeReviewActions';
 
 export type DisputeItem = {
     disputeId: number;
@@ -25,6 +20,8 @@ export type DisputeItem = {
 
 type Props = {
     items: DisputeItem[];
+    statusFilter: 'PENDING' | 'APPROVED' | 'REJECTED';
+    searchText: string;
 };
 
 function resolveUrl(path: string): string {
@@ -34,44 +31,7 @@ function resolveUrl(path: string): string {
     return `${backendOrigin}${path}`;
 }
 
-export default function DisputeRequestsPanel({ items }: Props) {
-    const [actionLoadingId,setActionLoadingId] = useState<number | null>(null);
-    const [statusFilter,setStatusFilter] = useState<'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
-    const [searchText,setSearchText] = useState('');
-    const router = useRouter();
-
-    const filteredItems = useMemo(() => {
-        const query = searchText.trim().toLowerCase();
-        return items.filter((item) => {
-            const matchesStatus = item.status === statusFilter;
-            const matchesName = !query || item.studentName.toLowerCase().includes(query);
-            return matchesStatus && matchesName;
-        });
-    },[items,statusFilter,searchText]);
-
-    const reviewDispute = async (disputeId: number,decision: 'APPROVE' | 'DENY') => {
-        setActionLoadingId(disputeId);
-        try {
-            const res = await fetch(API_ROUTES.REVIEW_DISPUTE(disputeId),{
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ decision }),
-            });
-            if (!res.ok) {
-                throw new Error('Failed');
-            }
-            toast.success(`Dispute ${decision === 'APPROVE' ? 'approved' : 'REJECTED'}`);
-            router.refresh();
-        } catch {
-            toast.error('Unable to review dispute');
-        } finally {
-            setActionLoadingId(null);
-        }
-    };
-
+export default function DisputeRequestsPanel({ items, statusFilter, searchText }: Props) {
     return (
         <Card className="border border-slate-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
             <CardHeader>
@@ -82,13 +42,12 @@ export default function DisputeRequestsPanel({ items }: Props) {
                 <CardDescription>Students can raise disputes for failed face scans.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <form className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between" method="GET">
                     <div className="inline-flex items-center rounded-lg border border-slate-200/70 bg-white/70 p-1">
                         {(['PENDING','APPROVED','REJECTED'] as const).map((status) => (
-                            <button
+                            <a
                                 key={status}
-                                type="button"
-                                onClick={() => setStatusFilter(status)}
+                                href={`?status=${status}&q=${encodeURIComponent(searchText)}`}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
                                     statusFilter === status
                                         ? 'bg-indigo-600 text-white'
@@ -96,7 +55,7 @@ export default function DisputeRequestsPanel({ items }: Props) {
                                 }`}
                             >
                                 {status.charAt(0) + status.slice(1).toLowerCase()}
-                            </button>
+                            </a>
                         ))}
                     </div>
 
@@ -104,15 +63,16 @@ export default function DisputeRequestsPanel({ items }: Props) {
                         <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
-                            value={searchText}
-                            onChange={(event) => setSearchText(event.target.value)}
+                            name="q"
+                            defaultValue={searchText}
                             placeholder="Search by student name"
                             className="w-full rounded-lg border border-slate-200/70 bg-white/80 pl-9 pr-3 py-2 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-indigo-200"
                         />
+                        <input type="hidden" name="status" value={statusFilter} />
                     </div>
-                </div>
+                </form>
 
-                {filteredItems.length === 0 ? (
+                {items.length === 0 ? (
                     <div className="rounded-xl border border-slate-200/70 bg-white/70 p-8 text-center">
                         <div className="mx-auto mb-3 h-12 w-12 rounded-2xl bg-slate-900/5 text-slate-700 flex items-center justify-center ring-1 ring-slate-900/10">
                             <AlertTriangle className="h-5 w-5" />
@@ -132,7 +92,7 @@ export default function DisputeRequestsPanel({ items }: Props) {
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {filteredItems.map((item) => (
+                        {items.map((item) => (
                             <div key={item.disputeId} className="rounded-xl border border-slate-200/70 bg-white/70 p-4">
                                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
@@ -144,26 +104,7 @@ export default function DisputeRequestsPanel({ items }: Props) {
                                         {item.reason ? <p className="text-xs text-gray-500 mt-1">Reason: {item.reason}</p> : null}
                                     </div>
                                     {item.status === 'PENDING' ? (
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                size="sm"
-                                                className="bg-emerald-600 hover:bg-emerald-700"
-                                                disabled={actionLoadingId === item.disputeId}
-                                                onClick={() => reviewDispute(item.disputeId,'APPROVE')}
-                                            >
-                                                <CheckCircle2 className="h-4 w-4 mr-1" />
-                                                Approve
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                disabled={actionLoadingId === item.disputeId}
-                                                onClick={() => reviewDispute(item.disputeId,'DENY')}
-                                            >
-                                                <XCircle className="h-4 w-4 mr-1" />
-                                                Deny
-                                            </Button>
-                                        </div>
+                                        <DisputeReviewActions disputeId={item.disputeId} />
                                     ) : null}
                                 </div>
 
