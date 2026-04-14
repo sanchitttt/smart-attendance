@@ -28,6 +28,8 @@ const API_ROUTES = {
     REVIEW_DISPUTE: (disputeId: string | number) => v1(`/attendance/disputes/${disputeId}/review`),
     DISPUTE_IMAGE: (disputeId: string | number,type: "submitted" | "master") =>
         v1(`/attendance/disputes/${disputeId}/image?type=${type}`),
+    STUDENT_PROFILE: (rollNo: string) => v1(`/users/student/${encodeURIComponent(rollNo)}`),
+    STUDENT_MASTER_IMAGE: (rollNo: string) => v1(`/users/student/${encodeURIComponent(rollNo)}/master-image`),
 };
 
 export default API_ROUTES;

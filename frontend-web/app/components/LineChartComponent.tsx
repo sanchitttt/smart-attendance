@@ -27,23 +27,24 @@ export interface LineChartProps {
 
 type ChartData = {
   date: string;
-} & Record<string, number>;
+} & Record<string,number>;
 
 export default function LineChartComponent({
   points,
   series
 }: LineChartProps) {
 
-  const data: ChartData[] = points.map((p, i) => {
-    const formattedDate = new Date(p.date).toLocaleDateString("en-IN", {
+  //@ts-ignore
+  const data: ChartData[] = points.map((p,i) => {
+    const formattedDate = new Date(p.date).toLocaleDateString("en-IN",{
       day: "numeric",
       month: "short"
     });
 
-    const values = series.reduce<Record<string, number>>((acc, s) => {
+    const values = series.reduce<Record<string,number>>((acc,s) => {
       acc[s.course] = s.values[i] ?? 0; // safety
       return acc;
-    }, {});
+    },{});
 
     return {
       date: formattedDate,

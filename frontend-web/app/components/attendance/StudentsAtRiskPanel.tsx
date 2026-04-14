@@ -1,6 +1,7 @@
 import { BookOpen, Percent, UserRound, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/app/components/ui/card';
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 
 export type AtRiskStudent = {
     studentName: string;
@@ -76,7 +77,8 @@ export default function StudentsAtRiskPanel({ courses, totalAtRiskStudents, head
 
                             <CardContent className="p-3 space-y-2">
                                 {group.students.map((student) => (
-                                    <div
+                                    <Link
+                                        href={`/student/${student.rollNo}`}
                                         key={`${group.course}-${student.rollNo}`}
                                         className="group relative flex items-center justify-between rounded-lg border border-slate-100 bg-white p-2.5 transition-colors hover:border-amber-200 hover:bg-amber-50/30"
                                     >
@@ -100,7 +102,7 @@ export default function StudentsAtRiskPanel({ courses, totalAtRiskStudents, head
                                                 <Percent className="h-2.5 w-2.5" />
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </CardContent>
                         </Card>
