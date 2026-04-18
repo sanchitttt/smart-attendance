@@ -11,14 +11,19 @@ import com.sanchit.smart_attendance.exception.BadRequestException;
 import com.sanchit.smart_attendance.repository.BatchRepository;
 import com.sanchit.smart_attendance.repository.ProgramRepository;
 import com.sanchit.smart_attendance.repository.UserRepository;
+import com.sanchit.smart_attendance.repository.projection.TeacherStudentProfileRow;
 import com.sanchit.smart_attendance.security.JwtService;
 import com.sanchit.smart_attendance.security.enums.Role;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
@@ -36,6 +41,10 @@ public class UserService {
     private final JwtService jwtService;
     private final BatchRepository batchRepository;
     private final ProgramRepository programRepository;
+    private final EnvironmentService environmentService;
+
+    @Value("${app.dev.admin-id:0}")
+    private Long devAdminId;
 
     public String getReferencePath(Long userId) {
 
@@ -46,6 +55,7 @@ public class UserService {
                         "Reference image not found for user: " + userId
                 ));
     }
+
     public DashboardResponse getDashboard(Long userId) {
         List<Object[]> rows = userRepository.getStudentDashboardRaw(userId);
 
@@ -82,6 +92,104 @@ public class UserService {
         return DashboardResponse.builder()
                 .subjects(subjects)
                 .build();
+    }
+
+    public Map<String, Object> getTeacherStudentProfile(Long adminId, String rollNo) {
+
+        List<TeacherStudentProfileRow> rows = userRepository.findTeacherStudentProfile((environmentService.isDevelopment() ? devAdminId : adminId), rollNo);
+
+        if (rows.isEmpty() || rows.stream().allMatch(row -> row.getSubjectName() == null)) {
+            if (!userRepository.existsTeacherStudentByRollNo(environmentService.isDevelopment() ? devAdminId : adminId, rollNo)) {
+                throw new BadRequestException("Student not found!");
+            }
+        }
+
+        TeacherStudentProfileRow base = rows.isEmpty() ? null : rows.get(0);
+
+        if (base == null) {
+            User user = userRepository.findByRollNo(rollNo)
+                    .orElseThrow(() -> new BadRequestException("Student not found"));
+            return Map.of(
+                    "studentName", user.getName(),
+                    "rollNo", user.getRollNo(),
+                    "programName", user.getBatch().getProgram().getProgramName(),
+                    "batch", user.getBatch().getStartYear() + "-" + user.getBatch().getEndYear(),
+                    "masterImageUrl", "/api/v1/users/student/" + rollNo + "/master-image",
+                    "overallAttendancePercentage", 0,
+                    "totalAttendedClasses", 0,
+                    "totalClasses", 0,
+                    "subjects", List.of()
+            );
+        }
+
+        System.out.println("Reached!");
+        List<Map<String, Object>> subjects = rows.stream()
+                .filter(row -> row.getSubjectName() != null && !row.getSubjectName().isBlank())
+                .map(row -> {
+                    Map<String, Object> subject = new java.util.HashMap<>();
+                    subject.put("subjectName", row.getSubjectName());
+                    subject.put("totalClasses", row.getTotalClasses() == null ? 0 : row.getTotalClasses());
+                    subject.put("attendedClasses", row.getAttendedClasses() == null ? 0 : row.getAttendedClasses());
+                    subject.put("attendancePercentage", row.getAttendancePercentage() == null ? 0 : row.getAttendancePercentage());
+                    return subject;
+                })
+                .toList();
+
+        int totalClasses = rows.stream()
+                .map(TeacherStudentProfileRow::getTotalClasses)
+                .filter(java.util.Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+        int totalAttendedClasses = rows.stream()
+                .map(TeacherStudentProfileRow::getAttendedClasses)
+                .filter(java.util.Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+        double overallAttendancePercentage = totalClasses == 0
+                ? 0
+                : Math.round((totalAttendedClasses * 10000.0) / totalClasses) / 100.0;
+
+        return Map.of(
+                "studentName", base.getStudentName(),
+                "rollNo", base.getRollNo(),
+                "programName", base.getProgramName(),
+                "batch", base.getStartYear() + "-" + base.getEndYear(),
+                "masterImageUrl", "/api/v1/users/student/" + rollNo + "/master-image",
+                "overallAttendancePercentage", overallAttendancePercentage,
+                "totalAttendedClasses", totalAttendedClasses,
+                "totalClasses", totalClasses,
+                "subjects", subjects
+        );
+    }
+
+    public AttendanceImagePayload getTeacherStudentMasterImage(Long adminId, String rollNo) {
+        if (!userRepository.existsTeacherStudentByRollNo(adminId, rollNo)) {
+            throw new BadRequestException("Student not found");
+        }
+
+        User user = userRepository.findByRollNo(rollNo)
+                .orElseThrow(() -> new BadRequestException("Student not found"));
+
+        String imagePath = user.getFaceEmbeddingPath();
+        if (imagePath == null || imagePath.isBlank()) {
+            throw new BadRequestException("Master image not found");
+        }
+
+        try {
+            Path filePath = Paths.get(imagePath).normalize();
+            if (!filePath.isAbsolute()) {
+                filePath = Paths.get(System.getProperty("user.dir")).resolve(filePath);
+            }
+            filePath = filePath.normalize();
+            byte[] bytes = Files.readAllBytes(filePath);
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null || contentType.isBlank()) {
+                contentType = "application/octet-stream";
+            }
+            return new AttendanceImagePayload(bytes, contentType, filePath.getFileName().toString());
+        } catch (Exception e) {
+            throw new BadRequestException("Failed to load master image");
+        }
     }
 
     public UserLoginResponse login(UserLoginRequest request) {
@@ -263,6 +371,9 @@ public class UserService {
                         + "-"
                         + batch.getEndYear()
         );
+    }
+
+    public record AttendanceImagePayload(byte[] bytes, String contentType, String fileName) {
     }
 }
 

@@ -151,6 +151,7 @@ public class SessionService {
         }
 
         LocalDate today = environmentService.isDevelopment() ? LocalDate.of(2026, 4, 9) : LocalDate.now();
+//        LocalDate today = LocalDate.now();
 
         Session session = Session.builder()
                 .sessionDate(today)
